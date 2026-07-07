@@ -14,6 +14,7 @@ Each skill lives under `skills/<name>/` as a `SKILL.md` (with frontmatter descri
 | [planning-stories](skills/planning-stories/) | Breaks a user story into **independently testable tasks** — produces a `STORY.<name>.md` plan (and optional tech-spec), plus Ralph-loop `.TASK.md` files for autonomous implementation when requested. |
 | [writing-tech-specs](skills/writing-tech-specs/) | Generates **lightweight technical specs** that capture WHAT changes — API endpoints, schema changes, and architecture deltas — with concise PlantUML diagrams, not implementation detail. |
 | [plantuml-diagramming](skills/plantuml-diagramming/) | Translates textual descriptions into **PlantUML diagrams** — sequence, class, activity, use case, state, component, object, and flowchart diagrams for processes, architectures, and workflows. |
+| [writing-woodpecker-ci](skills/writing-woodpecker-ci/) | Migrates CI/CD pipelines **to Woodpecker CI** from GitHub Actions, GitLab CI, Jenkins, Semaphore, and Drone — translates pipeline steps, writes/debugs `.woodpecker.yml`, and sets up plugins, services, matrix builds, secrets, and when-conditions. |
 
 ## Installation
 

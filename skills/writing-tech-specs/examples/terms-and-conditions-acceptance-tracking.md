@@ -25,7 +25,7 @@
 Add new value to auth.config table
 
 * key: `terms-and-conditions`
-* value: `{ "latestAvaliableAt": <UTC timestamp>}`
+* value: `{ "latestAvailableAt": <UTC timestamp>}`
 
 ### User
 

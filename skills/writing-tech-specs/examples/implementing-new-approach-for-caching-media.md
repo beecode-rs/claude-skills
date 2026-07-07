@@ -146,9 +146,9 @@ deactivate cmsPatientMiddleware
 In mobile no change should be visible, so we need to use postman to validate new patient endpoints
 
 1. Authenticate as patient
-2. Create or update education item and advisor entity in admin panel so they would have image/icon/video or embedded image link inside content filed
-3. Run **education-itmes/:id** endpoint (also **advisors/:id**) (ckeck if that new content is visible in response)
-4. Now, run **\[educartion-items od advisors\]/:id/files/:fileId** using image/icon/video id or embeddedLink id (`[imag name](id)`) as fileId in above mentioned endpoint
+2. Create or update education item and advisor entity in admin panel so they would have image/icon/video or embedded image link inside content field
+3. Run **education-items/:id** endpoint (also **advisors/:id**) (check if that new content is visible in response)
+4. Now, run **\[education-items or advisors\]/:id/files/:fileId** using image/icon/video id or embeddedLink id (`[image name](id)`) as fileId in above mentioned endpoint
 5. Response should return { data: { fileName, size, url }}
-6. Try changing file id to value that is not part of that entity, run again, is should return Forbidden error
+6. Try changing file id to value that is not part of that entity, run again, it should return Forbidden error
 7. Try switching to education item that is not allowed, forbidden error should be thrown in this case also. (advisors are allowed for everyone, so this check does not include them)

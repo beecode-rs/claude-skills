@@ -38,10 +38,10 @@ add new endpoints
   * set the current timestamp to appointment.flaggedDidNotAttendAt
 * DELETE `/appointments/:appointmentId/did-not-attend-flag`
   * if the appointment is cancelled, then throw an error
-  * if the appointment is not flagged with a did-not-attend flat, then throw an error
+  * if the appointment is not flagged with a did-not-attend flag, then throw an error
   * remove the value from the appointment.flaggedDidNotAttendAt
 * update behaviour PUT `/appointments/:appointmentId/cancel`
-  * if the appointment is flagged with a did-not-attend flat, then throw an error
+  * if the appointment is flagged with a did-not-attend flag, then throw an error
   * if the appointment startAt is in the past, then throw an error
 
 # Happy path

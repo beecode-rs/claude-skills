@@ -6,7 +6,7 @@
   * 2.1 [node-core](#node-core.1)
     * 2.1.1 [BenefitTemplate](#BenefitTemplate)
 * 3 [Flow](#Flow)
-  * 3.1 [Frontent](#Frontent)
+  * 3.1 [Frontend](#Frontend)
     * 3.1.1 [Web](#Web)
       * 3.1.1.1 [Benefits Template List screen](#Benefits-Template-List-screen)
       * 3.1.1.2 [Benefits Template Detail screen (create/edit)](#Benefits-Template-Detail-screen-\(create%2Fedit\))
@@ -74,7 +74,7 @@ class BenefitTemplate {
 
 # Flow
 
-## Frontent
+## Frontend
 
 ### Web
 

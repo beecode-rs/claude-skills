@@ -1,0 +1,49 @@
+{
+  "skill_name": "mom-test-coach",
+  "evals": [
+    {
+      "id": 0,
+      "name": "prep-new-idea",
+      "prompt": "I have an idea for a SaaS product I want to validate using the mom test before I build anything. The idea: a tool that hooks into a company's git history and Jira and automatically writes customer-facing release notes / changelogs, so product teams don't have to. My target customers are \"SaaS companies\". I'm a developer. Help me prepare for customer interviews - set up whatever documents we need and give me the interview questions I should ask. I'm heading out soon, so if anything is unclear make reasonable assumptions and note them instead of waiting for me.",
+      "expected_output": "An idea workspace: idea brief with a properly sliced customer segment (pushes back on the too-broad 'SaaS companies'), 3 ranked riskiest assumptions, and an interview script of mom-test-compliant questions (past behavior, no 'would you buy/use' hypotheticals) plus a cheat sheet.",
+      "files": [],
+      "assertions": [
+        "Interview questions contain no idea-centric hypotheticals such as 'would you buy/use/pay for' - all questions are answerable with facts about the interviewee's life",
+        "Questions target specific past behavior or current practice (phrasing like 'talk me through the last time', 'what are you currently doing', 'what have you already tried')",
+        "Pushes back on 'SaaS companies' as too broad a segment and produces a narrower, findable customer slice with concrete places to reach them",
+        "Identifies roughly three ranked riskiest assumptions (big questions) that the interviews must test",
+        "Produces a structured, reusable workspace of separate documents (idea brief, big questions, interview script) rather than one blob of chat text",
+        "Interview approach frames conversations as casual advice-seeking and keeps the idea/pitch out of early interviews"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "fix-bad-questions",
+      "prompt": "Tomorrow I'm meeting two potential users for my side project - a time-tracking app for freelance developers that auto-generates invoices. Here are the interview questions I plan to ask. Review them, tell me which are good or bad and why, and give me a fixed final script saved to a file:\n\n1. Do you think an automatic time-tracking and invoicing tool is a good idea?\n2. Would you pay $15/month for something like this?\n3. How much time do you spend on invoicing each month?\n4. Would you use a feature that auto-detects which client you're working on based on the git repo?\n5. Don't you hate how clunky existing time trackers are?",
+      "expected_output": "Identifies questions 1, 2, 4, 5 as failing the Mom Test with reasons (opinion-seeking, hypothetical pricing, future/feature hypothetical, leading), keeps/refines 3, and rewrites the failures into past-behavior questions. Saves a final script file.",
+      "files": [],
+      "assertions": [
+        "Flags questions 1, 2, 4, and 5 as bad (opinion-seeking, hypothetical pricing, hypothetical future feature, leading question respectively)",
+        "Treats question 3 as the salvageable one but sharpens it toward a specific past instance rather than a generic monthly average",
+        "Every rejected question is rewritten into a past-behavior or fact-based replacement, not merely deleted",
+        "Explains WHY each bad question fails (invites polite lies, hypothetical answers, or leads the witness), not just a good/bad label",
+        "A final fixed interview script is saved to a file"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "debrief-interview-notes",
+      "prompt": "I just finished my first mom test interview for my invoicing-automation idea for freelance developers. Here are my raw notes - help me debrief: what did I actually learn, was this a good interview, and what should I do next?\n\nNotes from chat with Marko (freelance web dev, 8 yrs, met at local dev meetup):\n- told him about my idea, he said it sounds awesome and he'd definitely use something like that\n- says he usually spends \"a lot\" of time on invoicing, it's always a pain\n- last month: spent a whole Sunday reconciling hours between Toggl and memory for his 4 clients, said he probably forgot to bill around 6 hours, ~300 EUR lost\n- currently uses Toggl free plan + a spreadsheet he built 3 years ago, exports CSV and massages it manually every month\n- got angry talking about one client who disputes hours all the time, called it \"humiliating\"\n- he said I should really add automatic bank payment matching, that would be killer\n- asked if he'd be up for trying an early version, he said \"sounds great, keep me posted when it launches!\"",
+      "expected_output": "A debrief that sorts statements into facts vs compliments vs fluff, flags 'sounds awesome / definitely use' as worthless data, recognizes the Sunday/6-hours/300-EUR and spreadsheet-workaround as strong evidence, digs the feature request for the underlying need, identifies 'keep me posted' as a polite rejection / zero commitment, and coaches that pitching the idea first polluted the interview.",
+      "files": [],
+      "assertions": [
+        "Classifies 'sounds awesome / would definitely use it' as compliment/fluff and explicitly excludes it from the evidence",
+        "Identifies the concrete facts (whole Sunday reconciling, ~6 unbilled hours / ~300 EUR lost, 3-year-old spreadsheet workaround, client disputes) as the real evidence of pain",
+        "Interprets 'sounds great, keep me posted when it launches' as a polite rejection / zero commitment, not as a positive signal",
+        "Treats the bank-matching feature request as data about an underlying need to dig into, not as a roadmap item to build",
+        "Coaches the interviewer that opening by pitching the idea polluted the data (compliments came from the pitch)",
+        "Gives concrete next steps, e.g. more interviews in the same segment, anchoring fluffy claims to past instances, and asking for a real commitment next time"
+      ]
+    }
+  ]
+}

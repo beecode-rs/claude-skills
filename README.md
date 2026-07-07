@@ -11,21 +11,30 @@ Each skill lives under `skills/<name>/` as a `SKILL.md` (with frontmatter descri
 | [mom-test-coach](skills/mom-test-coach/) | Validates product/startup ideas using **The Mom Test** — shapes the idea, finds the riskiest assumptions, crafts interview questions that surface facts (not compliments), debriefs raw notes, and reaches a proceed / pivot / kill verdict. Includes a mock-interview practice mode. |
 | [writing-clean-ts](skills/writing-clean-ts/) | TypeScript code patterns for backend and frontend — services, repositories, DALs, entities, controllers, use cases, and React components following a strict layered clean-architecture convention. |
 | [mono-repo-typescript](skills/mono-repo-typescript/) | TypeScript monorepo architecture with **pnpm workspaces** — package organization, shared libraries, ES module path aliases, centralized config, and Docker Compose orchestration. |
+| [planning-stories](skills/planning-stories/) | Breaks a user story into **independently testable tasks** — produces a `STORY.<name>.md` plan (and optional tech-spec), plus Ralph-loop `.TASK.md` files for autonomous implementation when requested. |
+| [writing-tech-specs](skills/writing-tech-specs/) | Generates **lightweight technical specs** that capture WHAT changes — API endpoints, schema changes, and architecture deltas — with concise PlantUML diagrams, not implementation detail. |
+| [plantuml-diagramming](skills/plantuml-diagramming/) | Translates textual descriptions into **PlantUML diagrams** — sequence, class, activity, use case, state, component, object, and flowchart diagrams for processes, architectures, and workflows. |
 
 ## Installation
 
-Install a skill with `npx skills add` (no global install needed):
+Install a skill with `npx skills add` (no global install needed).
+
+**Choose from a list** — runs interactively and lets you pick which skill(s) to install:
 
 ```bash
-npx skills add beecode-rs/claude-skills@<skill-name>
+npx skills add beecode-rs/claude-skills
 ```
 
-Replace `<skill-name>` with one of:
+**Install a single skill directly** — skip the list by appending `@<skill-name>`:
 
 ```bash
 npx skills add beecode-rs/claude-skills@mom-test-coach
-npx skills add beecode-rs/claude-skills@writing-clean-ts
-npx skills add beecode-rs/claude-skills@mono-repo-typescript
+```
+
+**Update installed skills** to the latest version:
+
+```bash
+npx skills update
 ```
 
 Claude auto-discovers skills on startup and activates them based on the `description` in each `SKILL.md` — you don't need to configure anything else.

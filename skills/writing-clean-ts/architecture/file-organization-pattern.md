@@ -23,7 +23,8 @@ src/
 │       ├── entity/              # TypeORM entities
 │       └── *-dal.ts             # Data Access Layer classes
 ├── ui-component/                # React UI components
-└── util/                        # Pure utility functions (NO business logic)
+├── util/                        # Pure utility functions (project-local, NO business logic)
+└── lib/                         # Reusable infrastructure (NO business logic) — staging area until extracted to a shared package
 ```
 
 ### Where to Place Code
@@ -40,6 +41,7 @@ src/
 | Type definitions | `src/business/model/` | `src/business/model/project-model.ts` |
 | React components | `src/ui-component/` | `src/ui-component/project-list.tsx` |
 | Pure utilities | `src/util/` | `src/util/date-util.ts` |
+| Reusable infrastructure (no business logic, multi-microservice, destined for extraction) | `src/lib/` | `src/lib/typeorm/index.ts` |
 
 ## Subfolder Grouping Within Layers
 
@@ -138,7 +140,7 @@ src/business/service/
 
 ## CRITICAL: Forbidden Locations
 
-**NEVER create arbitrary top-level folders outside the defined structure.** This means folders at the `src/` level that don't map to a known layer. Subfolders *within* layers are encouraged for grouping related files.
+**NEVER create arbitrary top-level folders outside the defined structure.** The allowed top-level folders under `src/` are: `app-boot/`, `controller/`, `business/`, `dal/`, `ui-component/`, `util/`, and `lib/`. `src/lib/` is explicitly allowed — it holds reusable, non-business-logic infrastructure staged for extraction into a shared package (see "Reusable Infrastructure (`src/lib/`)" below). Any other folder at the `src/` level that does not map to a known layer is forbidden. Subfolders *within* layers are encouraged for grouping related files.
 
 ### Examples of WRONG Locations:
 
@@ -162,6 +164,26 @@ src/business/service/
 ✅ src/controller/preset/console-simple-string.ts          # Subfolder grouping related presets
 ✅ src/util/date-util.ts
 ✅ src/business/model/yaml-contract-model.ts
+```
+
+### Reusable Infrastructure (`src/lib/`)
+
+`src/lib/` is the one top-level folder reserved for code that:
+- Contains **no business logic**
+- Can has a potential to be **reusable across multiple microservices**
+- Is **destined to be extracted** into a shared common package (`@app/node-common/`, `@app/common/`) or an external library
+
+It is a staging area: code lives here while it is only being used by the hosted service, and moves out once there is a need to be used by other services.
+
+**`src/lib/` vs `src/util/`:**
+- `src/util/` — project-local pure utility functions (stateless helpers that belong to this service)
+- `src/lib/` — reusable infrastructure written to be extracted into a shared package (TypeORM `DataSource`, RMQ connections, table mappers)
+- When unsure, prefer `src/util/`
+
+```
+✅ src/lib/typeorm/index.ts              # TypeORM DataSource singleton
+✅ src/lib/typeorm/table-name-mapper.ts  # Table-name mapping
+✅ src/lib/rmq/connection.ts             # RabbitMQ connection singleton
 ```
 
 ## Module Export Pattern
@@ -289,6 +311,7 @@ What kind of logic is this?
     ├─ HTTP request handling → src/controller/express/
     ├─ Database operations → src/dal/typeorm/
     ├─ Data transformation (no business rules) → src/util/
+    ├─ Reusable infrastructure (no business rules, destined for a shared package) → src/lib/
     └─ Business logic (has rules/validation) → src/business/
         ↓
     How complex is it?
@@ -373,7 +396,7 @@ export const [name]ParserService = {
 Before creating a new file, verify:
 
 - [ ] Is the location correct according to the directory structure?
-- [ ] Am I creating an arbitrary folder (e.g., `src/parsers/`)? → STOP, use `src/business/service/`
+- [ ] Am I creating an arbitrary folder outside the allowed set (`app-boot`, `controller`, `business`, `dal`, `ui-component`, `util`, `lib`)? → STOP. Business logic goes in `src/business/`, project-local helpers in `src/util/`, reusable extractable infrastructure in `src/lib/`
 - [ ] Am I exporting multiple standalone functions? → STOP, group into a service object
 - [ ] Am I using object params for all service methods? → MUST use `{ param: value }` syntax
 - [ ] Am I creating a barrel export (index.ts)? → Only for types or component public API

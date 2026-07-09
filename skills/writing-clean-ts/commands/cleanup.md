@@ -129,6 +129,7 @@ const getValue = (x) => {
 | Type definitions | `src/business/model/` |
 | React components | `src/ui-component/` |
 | Pure utilities | `src/util/` |
+| Reusable infrastructure (no business logic, destined for extraction) | `src/lib/` |
 
 **Forbidden Locations** (must be moved):
 - `src/parsers/` → `src/business/service/`
@@ -137,6 +138,8 @@ const getValue = (x) => {
 - `src/types/` → `src/business/model/`
 - `src/helpers/` → `src/util/` or `src/business/service/`
 - `src/domain/` → `src/business/`
+
+**Note:** `src/lib/` is **allowed**, not forbidden. It holds reusable, non-business-logic infrastructure staged for extraction into a shared package (`@app/node-common/` etc.). Do **not** flag `src/lib/typeorm/`, `src/lib/rmq/`, etc.
 
 ---
 

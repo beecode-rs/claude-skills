@@ -23,7 +23,7 @@ Do **not** load `style/*` for this pass.
 
 Run each check; report violations with `file:line`.
 
-1. **File placement** — business logic in `src/business/`, data access in `src/dal/`, handlers in `src/controller/`, utilities in `src/util/`; no arbitrary top-level folders
+1. **File placement** — business logic in `src/business/`, data access in `src/dal/`, handlers in `src/controller/`, project-local utilities in `src/util/`, reusable extractable infrastructure in `src/lib/`; no arbitrary top-level folders outside the allowed set (`app-boot`, `controller`, `business`, `dal`, `ui-component`, `util`, `lib`)
 2. **Class vs object** — repositories/DAL/entity = class; controllers/use-cases = singleton; no exported instances
 3. **Layer dependencies** — a controller handler calls ONE business function; UI components contain no routing hooks or business logic
 4. **Entity↔Model boundary** — the DAL converts; business code uses models, not entities

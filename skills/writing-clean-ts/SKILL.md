@@ -240,7 +240,8 @@ After:  src/business/service/formatting-strategy/json.ts   ← Folder kept as-is
 | Interfaces, types, enums | `src/business/model/` | If standalone, or keep in subfolder if tightly coupled to implementations |
 | Strategy implementations | `src/business/service/<strategy-name>/` | Keep subfolder grouping |
 | Preconfigured entry points (presets) | `src/controller/preset/` | Keep subfolder grouping |
-| Utility functions | `src/util/` | Stateless helpers |
+| Utility functions | `src/util/` | Project-local stateless helpers |
+| Reusable infrastructure (no business logic, multi-microservice, destined for a shared package) | `src/lib/` | TypeORM DataSource, table mappers, RMQ connections — staging area before extraction to `@app/node-common/` etc. |
 
 ### Refactoring Rules
 
@@ -331,7 +332,7 @@ export class ProjectRepo extends CommonRepo<ProjectEntity, ProjectModel> {
 - ❌ **Exporting instantiated class objects** like `export const x = new X()` → ✅ Export the class and use `new ClassName()` at the call site. For singletons, use `singletonPattern(() => new X())` from `@beecode/msh-util/singleton/pattern`
 - ❌ Skipping object params in business logic → ✅ ALWAYS use object params
 - ❌ Using factory functions for repos → ✅ Use `new ProjectRepo()`
-- ❌ Creating arbitrary **top-level** folders like `src/parsers/`, `src/yaml/` → ✅ Use `src/business/service/` or `src/business/component/` (but subfolders within those layers are encouraged for grouping)
+- ❌ Creating arbitrary **top-level** folders outside the allowed set (`src/parsers/`, `src/yaml/`, `src/helpers/`) → ✅ Use `src/business/service/` or `src/business/component/` (subfolders within those layers are encouraged for grouping). Note: `src/lib/` **is** an allowed top-level folder — see "File Location" below.
 - ❌ Exporting multiple standalone functions from one file → ✅ Group into singleton service object
 - ❌ Creating index.ts barrel files → ✅ Import directly from source files (index.ts is boilerplate)
 - ❌ Creating parser modules with multiple exports → ✅ Use parser service template with singleton object
@@ -458,6 +459,7 @@ export const regexParserService = {
 - **Business logic MUST be in `src/business/`** (service/, component/, use-case/, repo/)
 - **Data access MUST be in `src/dal/`** (typeorm/)
 - **HTTP handlers MUST be in `src/controller/express/`**
-- **Utility functions MAY be in `src/util/`** (but prefer services for complex logic)
-- **NEVER create arbitrary top-level folders** outside the defined structure (no `src/yaml/`, `src/parsers/`, etc.)
+- **Utility functions MAY be in `src/util/`** (project-local pure helpers; prefer services for complex logic)
+- **Reusable infrastructure MAY be in `src/lib/`** — code with **no business logic** that is **reusable across multiple microservices**, kept as a staging area **until it is extracted** into a shared common package (`@app/node-common/`, `@app/common/`) or an external library. Examples: TypeORM `DataSource` singleton, table-name mapper, RMQ connection singletons
+- **NEVER create arbitrary top-level folders** outside the allowed set. Allowed top-level folders under `src/` are: `app-boot/`, `controller/`, `business/`, `dal/`, `ui-component/`, `util/`, `lib/` (so no `src/yaml/`, `src/parsers/`, `src/helpers/`)
 - **Subfolders within layers are encouraged** for grouping related implementations (e.g., `src/business/service/formatting-strategy/json.ts`)

@@ -16,6 +16,49 @@ The Use Case Layer orchestrates business scenarios and dynamic logic by coordina
 
 **IMPORTANT:** Use cases must always be singleton objects (never classes) to prevent them from being nested within other use cases. Use cases should orchestrate services and repositories, not other use cases.
 
+## When to Use a Use Case (and When Not To)
+
+A use-case function gives a **concise name to a complex operation**: an operation that does several things and would need an unwieldy name to describe everything it does in one word.
+
+The complexity lives in the **body**. A use-case is a sequence of well-named steps, where each step is a call to a service, repository, or component whose own name describes what that step does. The reader understands the whole operation by reading those step names, which is why the use-case itself can carry a short, high-level name.
+
+### The single-call rule
+
+A use-case function must orchestrate **two or more** business-layer operations. If a use-case calls only **one** service/repo/component and forwards its result, it is a useless wrapper: it adds a layer and a name without adding any behavior.
+
+The Controller Layer can call **any** business layer directly (use-case, service, repo, or component). A use-case is not a bridge the controller needs in order to reach a service. If there is only one step, there is nothing to orchestrate, so the controller calls that one business function itself.
+
+```typescript
+// ❌ WRONG - use-case that only wraps one service call (useless wrapper)
+export const projectUseCase = {
+  getProject: async (params: { id: string }): Promise<ProjectModel> => {
+    return await projectService.findOneById(params)
+  },
+}
+
+// ✅ CORRECT - controller calls the business layer directly
+const project = await projectService.findOneById({ id: params.id })
+
+// ✅ CORRECT - a real use-case orchestrates multiple steps under a concise name
+export const projectUseCase = {
+  cloneProject: async (params: { id: string; userId: string }): Promise<ProjectModel> => {
+    const source = await projectService.findOneById({ id: params.id })
+    const copy = await projectService.create({ name: `${source.name} (copy)` })
+    await auditService.logClone({ userId: params.userId, fromId: source.id, toId: copy.id })
+    return copy
+  },
+}
+```
+
+### Decision: use-case or not?
+
+Ask one question: **does this need more than one business call?**
+
+- **One call** -> no use-case. Call the service/repo/component directly from the controller.
+- **Several calls, or a conditional workflow** -> use-case. Give it a short name and let the step names in the body explain the detail.
+
+The only valid reason to create a use-case is multi-step orchestration. "The controller should not call the service directly" is **not** a valid reason; a controller calling a single business function is the expected pattern.
+
 ## Structure
 
 ```typescript
@@ -55,7 +98,7 @@ export const gitUseCase = {
 - **Always singleton objects** (never classes) - this is enforced to prevent use case nesting
 - **Orchestrates business scenarios**: Coordinates multiple services and repositories
 - **Dynamic logic**: Handles conditional workflows and multi-step processes
-- **Descriptive naming encouraged**: Names can be concise but should include documentation
+- **Concise naming**: The use-case name is short and high-level; the body's step names (the service/repo calls) carry the detail
 - Handle complex multi-step business workflows
 - Use structured logging to track workflow progress
 - camelCase naming: `gitUseCase`
@@ -90,12 +133,12 @@ export const orderUseCase = {
 
 | Aspect | Use Case Layer | Service Layer |
 |--------|---------------|---------------|
-| **Purpose** | Orchestrate workflows | Implement single-purpose logic |
+| **Purpose** | Orchestrate complex multi-step workflows | Implement single-purpose logic |
 | **Pattern** | Always singleton object | Singleton OR class (if methods call each other) |
-| **Naming** | Can be concise with docs | Must be descriptive |
-| **Calls** | Multiple services/repos | Repositories and utilities |
+| **Naming** | Short, high-level (the body's step names carry the detail) | Must be descriptive and self-contained |
+| **Calls** | **Two or more** services/repos/components (never one; one is a wrapper) | Repositories, DALs, utilities |
 | **Complexity** | Multi-step, conditional | Single-purpose, focused |
-| **Documentation** | Thorough documentation | Self-documenting names |
+| **Understood by** | Reading the step names in the body | Reading the function name |
 | **Reusability** | Not reusable in other use cases | Reusable across use cases |
 
 ## Null vs Undefined
@@ -125,11 +168,11 @@ See [null-undefined-pattern.md](../null-undefined-pattern.md) for complete guida
 ### ✅ DO
 - **Always use singleton objects** (never classes) for use cases
 - **Use `undefined` for optional/missing values** — never `null`
-- Orchestrate multiple Service Layer functions
+- Orchestrate **two or more** Service Layer operations (a use-case with a single call is a wrapper)
 - Handle complex business scenarios with conditional logic
 - Call repositories directly when needed
 - Call services (both class-based and singleton)
-- Document workflows thoroughly
+- Let the step names in the body document the workflow (names, not comments)
 - Keep use cases framework-agnostic
 - Use use cases for multi-service coordination
 - Instantiate service classes with `new` when needed
@@ -138,7 +181,7 @@ See [null-undefined-pattern.md](../null-undefined-pattern.md) for complete guida
 - Include transport-specific logic (HTTP, SQS, etc.)
 - Access DAL or Entities directly (use Repository Layer)
 - Duplicate business logic that should be in Service Layer
-- Create use cases for simple single-service operations (use Service directly)
+- **Create a use-case that wraps a single service/repo/component call** (a useless wrapper). If there is only one step, the controller calls that business function directly; there is nothing to orchestrate
 - Embed framework-specific code
 - **Use classes for use cases** (always use singleton objects)
 - **Call other use cases from within a use case** (orchestrate services instead)

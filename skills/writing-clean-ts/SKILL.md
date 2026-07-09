@@ -331,6 +331,7 @@ export class ProjectRepo extends CommonRepo<ProjectEntity, ProjectModel> {
 - ❌ Using for loops (`for`, `for...of`, `for...in`) → ✅ Use `.map()` or `.reduce()`
 - ❌ Using classes for controllers → ✅ Always use singleton objects
 - ❌ Using classes for use cases → ✅ Always use singleton objects
+- ❌ Creating a use-case that only wraps a single service/repo/component call → ✅ Call that business function directly from the controller; a use-case must orchestrate two or more steps
 - ❌ **Exporting instantiated class objects** like `export const x = new X()` → ✅ Export the class and use `new ClassName()` at the call site. For singletons, use `singletonPattern(() => new X())` from `@beecode/msh-util/singleton/pattern`
 - ❌ Skipping object params in business logic → ✅ ALWAYS use object params
 - ❌ Using factory functions for repos → ✅ Use `new ProjectRepo()`
@@ -411,6 +412,7 @@ secretServiceSingleton().decryptSecret(secret)
 - Backend: Express/RxJS/RMQ → Always singleton objects
 - Frontend: React Router → Function components that translate URL → props
 - **Single business call rule**: Controller handlers must call ONLY ONE function from the business layer (use-case, service, repo, or component). If multiple calls are needed, create a new service/use-case function that orchestrates them.
+- **No wrapper use-cases**: A use-case that only forwards a single service/repo/component call is dead weight. Controllers may call any business layer directly, so create a use-case only when it genuinely orchestrates two or more steps. A use-case exists to give a concise name to a complex operation; the body's step names carry the detail.
 - **Light handlers**: Controllers are for: (1) validate request data, (2) pass parameters to business layer, (3) format response. NO business logic in controllers.
 
 **Business Logic**:

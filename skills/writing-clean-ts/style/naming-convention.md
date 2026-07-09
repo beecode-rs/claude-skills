@@ -259,25 +259,25 @@ async removeProjectMember(projectId: string, userId: string): Promise<void>
 
 **Use Cases are the only layer where shorter function names are allowed.**
 
+A use-case name is short *because* the operation is complex: too complex to capture in one name without making it unwieldy. The detail is carried by the **body**. Each step is a call to a service/repo/component whose own name describes that step, so the reader understands the whole operation by reading those step names.
+
 Use case functions should be:
-- Accompanied by documentation explaining their purpose
 - Self-documenting through the body (calls to other service functions with longer, descriptive names)
+- **Created only when they orchestrate two or more steps.** A use-case that calls a single service function is a useless wrapper: the controller can call that service directly, so there is nothing to orchestrate. See [use-case-layer.md](../architecture/layer/use-case-layer.md)
 
 **Example:**
 ```typescript
 // authorization-use-case.ts
 
-/**
- * Verifies user credentials and generates authentication tokens
- */
 async authorize(params: { email: string; password: string }): Promise<AuthResult> {
-  // The purpose is clear from the service method calls
   const user = await userService.findUserByEmailAndValidatePassword(params)
   const tokens = await tokenService.generateAccessAndRefreshTokens(user.id)
   await sessionService.createUserSessionRecord(user.id, tokens.refreshToken)
   return tokens
 }
 ```
+
+The single word `authorize` is acceptable only because the three steps below it make the operation unambiguous. A one-line body that forwards a single call would not justify the name, or the use-case, at all.
 
 ## Timestamp Field Naming
 

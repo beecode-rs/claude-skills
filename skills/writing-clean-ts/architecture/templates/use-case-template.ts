@@ -1,6 +1,7 @@
 // Template: Use Case Layer
 // Location: src/business/use-case/feature-name-use-case.ts
 // Use cases orchestrate multiple services/repositories for complex operations
+// A use-case must orchestrate TWO OR MORE steps. Never wrap a single service call - if there is only one step, the controller calls that service directly
 // Replace "FeatureName" with your actual feature name
 
 import type { FeatureNameModel } from '#src/business/model/feature-name-model'

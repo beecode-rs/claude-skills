@@ -51,7 +51,9 @@ Instead of repeating error-swallowing code (a code smell), create wrapper functi
 
 When naming a function, ensure the name covers **everything** the function does. This rule prevents creating overly complex functions.
 
-**Exception:** Functions in the **Use Case Layer** are exempt because this layer doesn't contain business logic—it only combines functionality from other business layers.
+**Exception:** Functions in the **Use Case Layer** are exempt because a use-case only *combines* functionality from other business layers; it holds no business logic of its own. A use-case gets a short name, and the operations it combines are read from the descriptive names of the service/repo calls in its body.
+
+This exemption has a hard limit: a use-case must combine **two or more** operations. A use-case that calls only one service function is an unnecessary wrapper, because the controller can call that service directly. See [use-case-layer.md](../architecture/layer/use-case-layer.md).
 
 **Examples:**
 

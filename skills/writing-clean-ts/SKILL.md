@@ -121,6 +121,8 @@ If code needs a comment to be understood, the code is wrong. Refactor instead:
 | UI Component | `kebab-case.tsx` | `PascalCase` component | `<ProjectList />` |
 | **Subfolder** (any layer) | `folder/date.ts` | `FolderPrefixDate` class | `YamlParserDate` / `FormattingStrategyJson` |
 
+**Private files:** filenames are kebab-case, but a single leading underscore marks a file as private to its folder/component (never imported outside it), analogous to `_prop` on a class/object. This is allowed and is not a naming violation.
+
 **Full details in [patterns/naming-convention.md](patterns/naming-convention.md)**
 
 ## Process

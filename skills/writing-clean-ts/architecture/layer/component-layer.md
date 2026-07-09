@@ -120,13 +120,27 @@ src/
 │   │       └── service.ts      # Private implementation - switches between rules
 ```
 
+An alternative way to keep private files flat while still signaling privacy is to prefix them with a leading underscore instead of grouping them in a `rule/` subfolder:
+
+```
+src/business/component/todo-status/
+├── _todo.ts            # private rule (todo)
+├── _in-progress.ts     # private rule (in-progress)
+├── _done.ts            # private rule (done)
+├── _cancelled.ts       # private rule (cancelled)
+├── index.ts            # Public API
+└── service.ts          # Private implementation, imports the _ files
+```
+
+Both layouts are valid. Use a `rule/` subfolder when you want several private files grouped together; use the `_` prefix when you want flat files but still want to signal "do not import me from outside this folder".
+
 ## Naming Conventions
 
 | Element | File Name | Export Pattern | Usage Example |
 |---------|-----------|----------------|---------------|
 | **Component** | `kebab-case/` (folder) | Via `index.ts` | `invoiceStatusComponent.canChangeTo()` |
 | **Component Service** | `service.ts` | Not exported (private) | Internal use only |
-| **Component Rules** | `kebab-case.ts` | Not exported (private) | Internal use only |
+| **Component Rules** | `_kebab-case.ts` (flat) or `rule/kebab-case.ts` (subfolder) | Not exported (private) | Internal use only |
 | **Public API** | `index.ts` | `camelCase` singleton object | `invoiceStatusComponent` |
 
 ## Pattern
@@ -253,6 +267,8 @@ export class InvoiceStatusService {
 ### 3. Private Rules (rule/*.ts)
 
 Each rule implements the specific transition logic for a status. These are singleton objects that are not exported from the component.
+
+An alternative to the `rule/` subfolder is to keep the rule files flat in the component folder and mark them private with a leading underscore instead (for example `_draft.ts`, `_created.ts`). The leading `_` signals "private to this folder", so `service.ts` then imports `./_draft.js`, `./_created.js`, and so on, and nothing outside the component ever imports them. Both approaches are valid; pick whichever reads best for the number of rules you have.
 
 ```typescript
 // src/business/component/invoice-status/rule/draft.ts

@@ -150,8 +150,11 @@ const getValue = (x) => {
 | Pattern | Status | Example |
 |---------|--------|---------|
 | kebab-case | ✅ PASS | `project-service.ts` |
+| `_kebab-case.ts` (leading underscore) | ✅ PASS | `_draft.ts` (private-file marker) |
 | PascalCase | ❌ FAIL | `ProjectService.ts` |
 | camelCase | ❌ FAIL | `projectService.ts` |
+
+A leading underscore is an allowed private-file marker and MUST NOT be flagged as a kebab-case violation.
 
 #### Export Naming
 

@@ -400,5 +400,5 @@ Before creating a new file, verify:
 - [ ] Am I exporting multiple standalone functions? → STOP, group into a service object
 - [ ] Am I using object params for all service methods? → MUST use `{ param: value }` syntax
 - [ ] Am I creating a barrel export (index.ts)? → Only for types or component public API
-- [ ] Does the file name use kebab-case?
+- [ ] Does the file name use kebab-case? (A single leading `_` marking a private file is allowed.)
 - [ ] Does the export use camelCase for singleton or PascalCase for class?

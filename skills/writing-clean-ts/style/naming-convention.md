@@ -17,6 +17,28 @@ All files and folders use **kebab-case** (dashed-case):
 | Types/Models | `project-model.ts`, `feature-types.ts`   |
 | Folders      | `some-folder/`, `service/`               |
 
+### Private Files (Leading Underscore)
+
+A single leading underscore (`_`) on a filename is an allowed **visibility marker**: the file is **private to its folder/component** and must only be imported by other files inside that same folder. It must never be imported from outside the component.
+
+- The text **after** the underscore is still kebab-case, so `_in-progress.ts` is valid.
+- The underscore is a visibility marker, not part of the name.
+- This mirrors the `_` prefix convention for private/protected members in classes and objects (for example `private _internalDecrypt`).
+
+**Structure:**
+```
+src/business/component/todo-status/
+├── _todo.ts           # private rule, exports todoRule
+├── _in-progress.ts    # private rule, exports inProgressRule
+├── _done.ts           # private rule, exports doneRule
+├── _cancelled.ts      # private rule, exports cancelledRule
+└── service.ts         # the only file that imports the _ files
+```
+
+Nothing outside the `todo-status/` folder imports the `_`-prefixed files.
+
+This is **optional** and most common in the Component layer, where it is an alternative to a `rule/` subfolder for keeping private rule files flat while still signaling "do not import me from outside this folder".
+
 ### Subfolder Naming Convention (All Layers)
 
 When organizing related files in a **subfolder** within any layer (`src/business/service/`, `src/business/component/`, `src/controller/`, etc.), use this naming convention:

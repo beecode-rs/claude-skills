@@ -13,21 +13,25 @@ The boundary between Component and Service can be unclear. Use this decision tre
 ```
 Start: Need to implement business logic
   ↓
-Does it have 3+ internal states/rules?
-  ├─ No → Use SERVICE
-  └─ Yes
+Do several files form a closed pattern (one main entry + multiple private strategies)?
+  ├─ Yes → Use COMPONENT (one folder, only index.ts public — see "Strategy Pattern Component")
+  └─ No
       ↓
-  Does it need state transition validation?
+      Does it have 3+ internal states/rules?
       ├─ No → Use SERVICE
       └─ Yes
           ↓
-      Can it be self-contained (no external deps)?
-          ├─ No → Use SERVICE or USE CASE
+          Does it need state transition validation?
+          ├─ No → Use SERVICE
           └─ Yes
               ↓
-          Need to hide complex implementation?
-              ├─ No → Use SERVICE
-              └─ Yes → Use COMPONENT
+              Can it be self-contained (no external deps)?
+              ├─ No → Use SERVICE or USE CASE
+              └─ Yes
+                  ↓
+                  Need to hide complex implementation?
+                  ├─ No → Use SERVICE
+                  └─ Yes → Use COMPONENT
 ```
 
 ### Use COMPONENT when ALL of these are true:
@@ -76,6 +80,7 @@ Does it have 3+ internal states/rules?
 
 Use the Component Layer when you need to:
 
+- **Encapsulate a closed pattern implementation** — a main entry file plus multiple strategy/collaborator services where one thing is exposed and the rest are private (see "Strategy Pattern Component" below)
 - **Encapsulate complex state transition logic** (e.g., invoice status workflows, order lifecycle)
 - **Hide intricate business rules** that are too complex for a simple service method
 - **Create modular, self-contained logic** that has strict internal rules
@@ -484,6 +489,36 @@ export const orderStatusComponent = {
 Each component should focus on ONE domain concept (e.g., invoice status, order lifecycle, payment workflow).
 
 ## Common Patterns
+
+### Strategy Pattern Component
+
+When a few files together form a pattern implementation (strategy pattern, chain of responsibility, rule engine — any pattern of this shape), the **whole bunch lives in ONE folder** in the component layer. The nature of such patterns is that exactly one thing is exposed (the main entry) and the other things are private, not accessible from outside — which is the component layer's encapsulation contract, so the file structure must mirror it:
+
+```
+src/business/component/text-formatting/
+├── _json.ts              # private strategy (leading `_` = never imported outside this folder)
+├── _simple-string.ts     # private strategy
+├── service.ts            # private implementation — selects/switches between the strategies
+└── index.ts              # the ONLY public entry point
+```
+
+An alternative to `_`-prefixed flat files is a `strategy/` subfolder, exactly like the `rule/` subfolder alternative described above.
+
+**Rules:**
+- Entry, all strategy files, and the tightly-coupled shared interface go in the same component folder — never split across layers or folders
+- Only `index.ts` is public; strategy files must never be imported from outside the component
+- If each strategy is meant to be independently picked by outside callers, it is NOT a closed pattern — use an open subfolder grouping in `src/business/service/` instead (see [file-organization-pattern.md](../file-organization-pattern.md))
+
+```typescript
+// src/business/component/text-formatting/index.ts — the ONLY public file
+import { textFormattingService } from './service'
+
+export const textFormattingComponent = {
+  format(params: { value: string }): string {
+    return textFormattingService.format(params)
+  },
+}
+```
 
 ### State Machine Component
 

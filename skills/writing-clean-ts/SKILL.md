@@ -1,6 +1,6 @@
 ---
 name: writing-clean-ts
-description: Expert in TypeScript codebase patterns for backend and frontend. Helps with creating services, repositories, DALs, entities, controllers, handlers, use cases, React components, and UI screens. Make sure to use this skill whenever the user mentions TypeScript, Node.js, Express, TypeORM, React, React Router, React Native, Expo, creating an API endpoint, building a feature, implementing CRUD operations, or asks about codebase architecture - even if they don't explicitly say "clean architecture" or mention specific layers. For testing, use the test-typescript skill.
+description: Expert in TypeScript codebase patterns for backend and frontend. Helps with creating services, repositories, DALs, entities, controllers, handlers, use cases, React components, and UI screens. Make sure to use this skill whenever the user mentions TypeScript, Node.js, Express, TypeORM, React, React Router, React Native, Expo, creating an API endpoint, building a feature, implementing CRUD operations, or asks about codebase architecture - even if they don't explicitly say "clean architecture" or mention specific layers. Also covers project linting setup (ESLint, Prettier, json-sort-cli, lint scripts in package.json) - use when the user mentions lint, linting, eslint, prettier, formatting, json sorting, or scaffolding a new TypeScript project. For testing, use the test-typescript skill.
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash
 ---
 
@@ -19,6 +19,7 @@ Provide expert guidance on writing code that follows the Node.js codebase conven
 - Implementing TypeORM entities with proper relations
 - Writing Express handlers with Zod validation
 - Orchestrating business logic with use cases
+- Setting up or running linting, formatting, or JSON sorting (ESLint, Prettier, json-sort-cli)
 
 ## Architecture Overview
 
@@ -41,16 +42,18 @@ Both translate external parameters into clean business layer calls:
 
 | Layer | Pattern | Location | Details |
 |-------|---------|----------|---------|
-| **App Boot** | Singleton | `src/app-boot/` | [app-boot-layer.md](layer/app-boot-layer.md) |
-| **Controller** (Express) | Singleton | `src/controller/express/` | [controller-layer.md](layer/controller-layer.md) |
-| **Controller** (React Router) | Function Component | `src/controller/react-router/` | [controller-react-router.md](layer/controller-react-router.md) |
-| **Component** | Singleton | `src/business/component/` | [component-layer.md](layer/component-layer.md) |
-| **Service** | Singleton/Class | `src/business/service/` | [service-layer.md](layer/service-layer.md) |
-| **Repository** | Class | `src/business/repo/` | [repository-layer.md](layer/repository-layer.md) |
-| **Use Case** | Singleton | `src/business/use-case/` | [use-case-layer.md](layer/use-case-layer.md) |
-| **DAL** | Class | `src/dal/typeorm/` | [dal-layer.md](layer/dal-layer.md) |
-| **Entity** | Class | `src/dal/typeorm/entity/` | [entity-layer.md](layer/entity-layer.md) |
-| **UI Component** | Function Component | `src/ui-component/` | [ui-component-layer.md](layer/ui-component-layer.md) |
+| **App Boot** | Singleton | `src/app-boot/` | [app-boot-layer.md](architecture/layer/app-boot-layer.md) |
+| **Controller** (Express) | Singleton | `src/controller/express/` | [controller-layer.md](architecture/layer/controller-layer.md) |
+| **Controller** (React Router) | Function Component | `src/controller/react-router/` | [controller-layer/react-router.md](architecture/layer/controller-layer/react-router.md) |
+| **Component** | Singleton | `src/business/component/` | [component-layer.md](architecture/layer/component-layer.md) |
+| **Service** | Singleton/Class | `src/business/service/` | [service-layer.md](architecture/layer/service-layer.md) |
+| **Repository** | Class | `src/business/repo/` | [repository-layer.md](architecture/layer/repository-layer.md) |
+| **Use Case** | Singleton | `src/business/use-case/` | [use-case-layer.md](architecture/layer/use-case-layer.md) |
+| **DAL** | Class | `src/dal/typeorm/` | [dal-layer.md](architecture/layer/dal-layer.md) |
+| **Entity** | Class | `src/dal/typeorm/entity/` | [entity-layer.md](architecture/layer/entity-layer.md) |
+| **UI Component** | Function Component | `src/ui-component/` | [ui-component-layer.md](architecture/layer/ui-component-layer.md) |
+| **Util** | Singleton object | `src/util/` | Files suffixed `-util` (exceptions: `config`, `constants`, `logger`, `error`) — see [naming-convention.md](style/naming-convention.md) |
+| **Lib** | Class or Singleton | `src/lib/` | No suffix — never `-service` — see [naming-convention.md](style/naming-convention.md) |
 
 ## Commands
 
@@ -60,18 +63,20 @@ Both translate external parameters into clean business layer calls:
 
 **MANDATORY - READ THESE PATTERNS:**
 
-- **Naming Conventions**: [patterns/naming-convention.md](patterns/naming-convention.md) - File naming, exports, and conventions for all layers
-- **Class vs Object**: [patterns/class-vs-object.md](patterns/class-vs-object.md) - Decision guide for choosing classes vs singleton objects
-- **Model vs Entity**: [patterns/model-vs-entity.md](patterns/model-vs-entity.md) - When to use Models vs Entities, transformation patterns
-- **Object Params**: [patterns/object-params-pattern.md](patterns/object-params-pattern.md) - Function parameter patterns (business logic ALWAYS uses object params)
-- **Null vs Undefined**: [patterns/null-undefined-pattern.md](patterns/null-undefined-pattern.md) - `undefined` in business logic, `null` only in DAL/Entity layer
-- **Function Guidelines**: [patterns/function-guidelines.md](patterns/function-guidelines.md) - Error handling, naming, exhaustive checks
-- **Timestamp Handling**: [patterns/timestamp-handling.md](patterns/timestamp-handling.md) - TypeORM setup and field naming
-- **REST API URLs**: [patterns/rest-api-url-conventions.md](patterns/rest-api-url-conventions.md) - REST endpoint URL naming and structure (dashed-case, plural collections)
-- **Express Handlers**: [patterns/express-handler-pattern.md](patterns/express-handler-pattern.md) - REST API endpoint handler implementation
-- **Validation (Zod)**: [patterns/validation-pattern.md](patterns/validation-pattern.md) - Schema definitions, type inference, error handling
-- **Code Style**: [patterns/code-style.md](patterns/code-style.md) - Multi-line formatting for accurate code coverage
-- **File Organization**: [patterns/file-organization-pattern.md](patterns/file-organization-pattern.md) - Where to place files, module structure, preventing misplaced code
+- **Naming Conventions**: [style/naming-convention.md](style/naming-convention.md) - File naming, exports, and conventions for all layers
+- **Class vs Object**: [architecture/class-vs-object.md](architecture/class-vs-object.md) - Decision guide for choosing classes vs singleton objects
+- **Model vs Entity**: [architecture/model-vs-entity.md](architecture/model-vs-entity.md) - When to use Models vs Entities, transformation patterns
+- **Object Params**: [style/object-params-pattern.md](style/object-params-pattern.md) - Function parameter patterns (business logic ALWAYS uses object params)
+- **Null vs Undefined**: [architecture/null-undefined-pattern.md](architecture/null-undefined-pattern.md) - `undefined` in business logic, `null` only in DAL/Entity layer
+- **Function Guidelines**: [style/function-guidelines.md](style/function-guidelines.md) - Error handling, naming, exhaustive checks
+- **Timestamp Handling**: [style/timestamp-handling.md](style/timestamp-handling.md) - TypeORM setup and field naming
+- **REST API URLs**: [architecture/rest-api-url-conventions.md](architecture/rest-api-url-conventions.md) - REST endpoint URL naming and structure (dashed-case, plural collections)
+- **Express Handlers**: [architecture/express-handler-pattern.md](architecture/express-handler-pattern.md) - REST API endpoint handler implementation
+- **Validation (Zod)**: [architecture/validation-pattern.md](architecture/validation-pattern.md) - Schema definitions, type inference, error handling
+- **Code Style**: [style/code-style.md](style/code-style.md) - Multi-line formatting for accurate code coverage, falsy defaults
+- **File Organization**: [architecture/file-organization-pattern.md](architecture/file-organization-pattern.md) - Where to place files, module structure, preventing misplaced code
+- **Linting Workflow**: [linting/linting-workflow.md](linting/linting-workflow.md) - Tools lint, not the agent; ESLint + Prettier + json-sort-cli scripts and policy
+- **ESLint Rule Set**: [linting/eslint-rules.md](linting/eslint-rules.md) - Complete rule inventory (Node.js and React flavors) for generating configs in any project
 
 ### Starter Templates
 
@@ -79,18 +84,18 @@ Copy-paste ready templates for quickly scaffolding new layers:
 
 | Template | Location | Use When |
 |----------|----------|----------|
-| Service (singleton) | [templates/service-template.ts](templates/service-template.ts) | Creating a service with independent methods |
-| Service (class) | [templates/service-class-template.ts](templates/service-class-template.ts) | Creating a service with interdependent methods |
-| Parser Service | [templates/parser-service-template.ts](templates/parser-service-template.ts) | Creating a parser service (regex, date, etc.) |
-| Repository | [templates/repository-template.ts](templates/repository-template.ts) | Creating a repository class |
-| DAL | [templates/dal-template.ts](templates/dal-template.ts) | Creating a TypeORM DAL class |
-| Entity | [templates/entity-template.ts](templates/entity-template.ts) | Creating a TypeORM entity |
-| Use Case | [templates/use-case-template.ts](templates/use-case-template.ts) | Creating a use case for orchestrating services |
-| Express Handler (GET) | [templates/express-handler-template.ts](templates/express-handler-template.ts) | Creating a GET list endpoint |
-| Express Handler (POST) | [templates/express-handler-post-template.ts](templates/express-handler-post-template.ts) | Creating a POST create endpoint |
-| React Controller | [templates/react-controller-template.tsx](templates/react-controller-template.tsx) | Creating a React Router controller |
-| React Component | [templates/react-component-template.tsx](templates/react-component-template.tsx) | Creating a UI component |
-| Model | [templates/model-template.ts](templates/model-template.ts) | Creating model type definitions |
+| Service (singleton) | [templates/service-template.ts](architecture/templates/service-template.ts) | Creating a service with independent methods |
+| Service (class) | [templates/service-class-template.ts](architecture/templates/service-class-template.ts) | Creating a service with interdependent methods |
+| Parser Service | [templates/parser-service-template.ts](architecture/templates/parser-service-template.ts) | Creating a parser service (regex, date, etc.) |
+| Repository | [templates/repository-template.ts](architecture/templates/repository-template.ts) | Creating a repository class |
+| DAL | [templates/dal-template.ts](architecture/templates/dal-template.ts) | Creating a TypeORM DAL class |
+| Entity | [templates/entity-template.ts](architecture/templates/entity-template.ts) | Creating a TypeORM entity |
+| Use Case | [templates/use-case-template.ts](architecture/templates/use-case-template.ts) | Creating a use case for orchestrating services |
+| Express Handler (GET) | [templates/express-handler-template.ts](architecture/templates/express-handler-template.ts) | Creating a GET list endpoint |
+| Express Handler (POST) | [templates/express-handler-post-template.ts](architecture/templates/express-handler-post-template.ts) | Creating a POST create endpoint |
+| React Controller | [templates/react-controller-template.tsx](architecture/templates/react-controller-template.tsx) | Creating a React Router controller |
+| React Component | [templates/react-component-template.tsx](architecture/templates/react-component-template.tsx) | Creating a UI component |
+| Model | [templates/model-template.ts](architecture/templates/model-template.ts) | Creating model type definitions |
 
 ### CRITICAL: No Comments
 
@@ -111,19 +116,25 @@ If code needs a comment to be understood, the code is wrong. Refactor instead:
 
 | Layer | File | Export | Example |
 |-------|------|--------|---------|
-| Controller (Express) | `kebab-case.ts` | `camelCase` singleton | `getProjectsAll.handler` |
+| Controller (Express endpoint) | endpoint-based `.ts` | `camelCase` singleton | `getProjectsAll.handler` |
+| Controller module (IPC/Bus/MQ/Cron) | `<name>-controller.ts` | `camelCase` singleton | `ipcController.register()` |
 | Controller (React Router) | `kebab-case.tsx` | `PascalCase` component | `<ProjectListController />` |
-| Service | `kebab-case.ts` | `camelCase` singleton or `PascalCase` class | `calculationService` / `new SecretService()` |
-| Repository | `kebab-case.ts` | `PascalCase` class | `new ProjectRepo()` |
-| Use Case | `kebab-case.ts` | `camelCase` singleton | `gitUseCase.getCommits()` |
-| DAL | `kebab-case.ts` | `PascalCase` class | `new ProjectDal()` |
-| Entity | `kebab-case.ts` | `PascalCase` class | `ProjectEntity` |
+| Service (business layer ONLY) | `<name>-service.ts` | `camelCase` singleton or `PascalCase` class | `calculationService` / `new SecretService()` |
+| Repository | `<name>-repo.ts` | `PascalCase` class | `new ProjectRepo()` |
+| Use Case | `<name>-use-case.ts` | `camelCase` singleton | `gitUseCase.getCommits()` |
+| DAL | `<name>-dal.ts` | `PascalCase` class | `new ProjectDal()` |
+| Entity | `<name>-entity.ts` | `PascalCase` class | `ProjectEntity` |
+| Util | `<name>-util.ts` | `camelCase` singleton | `langUtil.detectLang()` |
+| Util (well-known) | `config.ts`, `constants.ts`, `logger.ts`, `error.ts` | `camelCase` singleton | `logger.info()` |
+| Lib | `<name>.ts` (no suffix) | `PascalCase` class or `camelCase` singleton | `Tray` / `tray` |
 | UI Component | `kebab-case.tsx` | `PascalCase` component | `<ProjectList />` |
 | **Subfolder** (any layer) | `folder/date.ts` | `FolderPrefixDate` class | `YamlParserDate` / `FormattingStrategyJson` |
 
+**`-service` is exclusive to `src/business/service/`.** Every other layer's suffix must match its layer: `-controller` for controller modules, `-dal` for DALs, `-util` for utils (well-known exceptions: `config`, `constants`, `logger`, `error`), and no suffix for lib files.
+
 **Private files:** filenames are kebab-case, but a single leading underscore marks a file as private to its folder/component (never imported outside it), analogous to `_prop` on a class/object. This is allowed and is not a naming violation.
 
-**Full details in [patterns/naming-convention.md](patterns/naming-convention.md)**
+**Full details in [style/naming-convention.md](style/naming-convention.md)**
 
 ## Process
 
@@ -159,7 +170,7 @@ src/
     └── model/feature-name-model.ts
 ```
 
-**Strategy Pattern** (multiple implementations of one interface):
+**Strategy Pattern, open** (multiple independently selectable implementations of one interface):
 ```
 src/
 ├── business/
@@ -174,6 +185,18 @@ src/
 │   └── preset/                                 # Presets in their own subfolder
 │       ├── preset-a.ts
 │       └── preset-b.ts
+```
+
+**Strategy Pattern (or any pattern), closed** (main entry file + multiple strategy services — one thing exposed, the rest private):
+```
+src/
+└── business/
+    └── component/
+        └── some-strategy/                      # ONE folder for the whole pattern, in the component layer
+            ├── _strategy-a.ts                  # Private — never imported outside the folder
+            ├── _strategy-b.ts                  # Private
+            ├── service.ts                      # Private implementation — switches between strategies
+            └── index.ts                        # The ONLY public entry point
 ```
 
 **Frontend Feature** (React Router):
@@ -205,15 +228,28 @@ Replace `@app` with your project name.
 ### 5. Code Style
 
 - TypeScript with strict type checking
-- Use `type` keyword for imports when possible
-- Imports sorted alphabetically with newlines between groups
-- **Object params pattern**: Business logic ALWAYS uses object params (see [patterns/object-params-pattern.md](patterns/object-params-pattern.md))
+- **`[lint]` marker**: rules tagged `[lint]` are also enforced by the lint script (see [linting/eslint-rules.md](linting/eslint-rules.md)). Write code that follows them, run `lint-fix` after writing, and manually fix only what the linter reports but cannot auto-fix. `[lint, auto-fix]` means `lint-fix` rewrites the code for you
+- Use `type` keyword for imports when possible `[lint, auto-fix]`
+- Imports sorted alphabetically with newlines between groups `[lint, auto-fix]`
+- **Object params pattern**: Business logic ALWAYS uses object params (see [style/object-params-pattern.md](style/object-params-pattern.md))
 - **One element per file**: One class/object/component per file (local types/interfaces allowed)
-- **No ternary operators**: Ternary operators are prohibited. Use `if/else` or extract to a named function. See [patterns/code-style.md](patterns/code-style.md) for alternatives and scoping rules
-- **Multi-line code**: Always write multi-line code for accurate code coverage. If statements and arrow functions must span multiple lines with block syntax and explicit `return`. Single-line code hides branch coverage. See [patterns/code-style.md](patterns/code-style.md)
-- **No for loops**: FOR LOOPS ARE PROHIBITED. Use `.map()` for transformations, `.reduce()` for aggregations. See [patterns/code-style.md](patterns/code-style.md) for detailed examples.
+- **No ternary operators** `[lint]`: Ternary operators are prohibited. Use `if/else` or extract to a named function. See [style/code-style.md](style/code-style.md) for alternatives and scoping rules
+- **Multi-line code**: Always write multi-line code for accurate code coverage. If statements and arrow functions must span multiple lines with block syntax and explicit `return`. Single-line code hides branch coverage. See [style/code-style.md](style/code-style.md)
+- **No for loops** `[lint]`: FOR LOOPS ARE PROHIBITED. Use `.map()` for transformations, `.reduce()` for aggregations. See [style/code-style.md](style/code-style.md) for detailed examples.
+- **No `let`**: `let` is prohibited — every binding is `const`. Branch-dependent values come from an extracted function that returns per branch. See [style/code-style.md](style/code-style.md)
+- **Switch over if/else chains**: Branching on the same value across multiple cases uses a `switch`, never an if/else chain. The switch MUST be encapsulated in a well-named function where each case block returns (and `default` throws) — no `break`, no fallthrough. See [style/code-style.md](style/code-style.md)
 - **No comments allowed**: Code must be self-documenting. Use descriptive function and variable names instead. Function names should explain what the function does, variable names should explain what they contain. If you feel the need to add a comment, first check if the code can be refactored to be more readable (extract function, rename variable, simplify logic).
 - **TODO comments**: Only `// TODO` comments are allowed as temporary markers. Every TODO MUST include a clear removal condition. Example: `// TODO: Remove after implementing real authentication - currently using mock data`. All TODOs must be removed once the described condition is met.
+
+### 6. Linting
+
+**Linting is NEVER done by the AI agent by hand.** It is always done by the tools: ESLint for code rules, Prettier for formatting, json-sort-cli for JSON key sorting.
+
+- After writing or changing code, ALWAYS run the project's `lint-fix` script, then `lint` to verify it passes clean
+- NEVER hand-edit code to fix something `eslint --fix`, `prettier --write`, or `jsonsort` can fix
+- When scaffolding any TypeScript app, ALWAYS add the lint scripts to its `package.json` and generate the ESLint config (Node.js backend or React frontend flavor) from the extracted rule inventory, using the newest tool versions
+- Full policy and scripts: [linting/linting-workflow.md](linting/linting-workflow.md)
+- Complete rule inventory for config generation: [linting/eslint-rules.md](linting/eslint-rules.md)
 
 ## Refactoring Existing Code
 
@@ -240,7 +276,8 @@ After:  src/business/service/formatting-strategy/json.ts   ← Folder kept as-is
 | Code type | Target location | Notes |
 |-----------|----------------|-------|
 | Interfaces, types, enums | `src/business/model/` | If standalone, or keep in subfolder if tightly coupled to implementations |
-| Strategy implementations | `src/business/service/<strategy-name>/` | Keep subfolder grouping |
+| Strategy implementations (open — callers pick one) | `src/business/service/<strategy-name>/` | Keep subfolder grouping |
+| Closed pattern implementation (main entry + private strategies) | `src/business/component/<name>/` | ONE folder for the whole bunch; only `index.ts` public, strategy files private |
 | Preconfigured entry points (presets) | `src/controller/preset/` | Keep subfolder grouping |
 | Utility functions | `src/util/` | Project-local stateless helpers |
 | Reusable infrastructure (no business logic, multi-microservice, destined for a shared package) | `src/lib/` | TypeORM DataSource, table mappers, RMQ connections — staging area before extraction to `@app/node-common/` etc. |
@@ -299,13 +336,13 @@ export const calculationService = {
   }
 }
 
-// Class (when methods call each other via `this`)
+// Class (when methods call each other via `this`, or the service needs helper functions)
 export class SecretService {
   decrypt(params: { secret: string }): string {
     return this._internalDecrypt(params.secret)
   }
 
-  private _internalDecrypt(value: string): string {
+  protected _internalDecrypt(value: string): string {
     // implementation
   }
 }
@@ -328,7 +365,9 @@ export class ProjectRepo extends CommonRepo<ProjectEntity, ProjectModel> {
 ## Common Pitfalls
 
 ### Backend
-- ❌ Using for loops (`for`, `for...of`, `for...in`) → ✅ Use `.map()` or `.reduce()`
+- ❌ Using for loops (`for`, `for...of`, `for...in`) → ✅ Use `.map()` or `.reduce()` `[lint]`
+- ❌ Using `let` for branch-dependent values (`let dir; if (...) { dir = ... }`) → ✅ `const` + extracted function that returns per branch
+- ❌ If/else chains comparing the same value across branches → ✅ `switch` encapsulated in a function (braced cases that return, `default` throws)
 - ❌ Using classes for controllers → ✅ Always use singleton objects
 - ❌ Using classes for use cases → ✅ Always use singleton objects
 - ❌ Creating a use-case that only wraps a single service/repo/component call → ✅ Call that business function directly from the controller; a use-case must orchestrate two or more steps
@@ -336,7 +375,9 @@ export class ProjectRepo extends CommonRepo<ProjectEntity, ProjectModel> {
 - ❌ Skipping object params in business logic → ✅ ALWAYS use object params
 - ❌ Using factory functions for repos → ✅ Use `new ProjectRepo()`
 - ❌ Creating arbitrary **top-level** folders outside the allowed set (`src/parsers/`, `src/yaml/`, `src/helpers/`) → ✅ Use `src/business/service/` or `src/business/component/` (subfolders within those layers are encouraged for grouping). Note: `src/lib/` **is** an allowed top-level folder — see "File Location" below.
+- ❌ Using the `-service` suffix outside `src/business/service/` (e.g., `src/util/lang-service.ts`, `src/lib/tray-service.ts`, `src/dal/history-service.ts`) → ✅ Match the layer's suffix: `-util` in `util/`, `-dal` in `dal/`, `-controller` for controller modules, and no suffix in `lib/` (see [naming-convention.md](style/naming-convention.md))
 - ❌ Exporting multiple standalone functions from one file → ✅ Group into singleton service object
+- ❌ Module-level private helper functions next to a service export (`const parseUser = ...` at root of file) → ✅ Fold them into the class as `protected _` methods called via `this`
 - ❌ Creating index.ts barrel files → ✅ Import directly from source files (index.ts is boilerplate)
 - ❌ Creating parser modules with multiple exports → ✅ Use parser service template with singleton object
 
@@ -349,29 +390,51 @@ export class ProjectRepo extends CommonRepo<ProjectEntity, ProjectModel> {
 ## Key Rules
 
 **LINT-FIX FIRST** (CRITICAL):
+- Linting is NEVER done by the AI agent by hand - it is always done by the tools: ESLint, Prettier, and json-sort-cli
 - NEVER manually fix lint issues if `lint-fix` command can fix them automatically
+- NEVER manually format code (quotes, width, sort order) or sort JSON keys - that is Prettier's and jsonsort's job
 - ALWAYS run `lint-fix` first before attempting manual fixes
 - Only manually fix lint issues if `lint-fix` is unsuccessful in fixing the issue
+- NEVER disable or downgrade a rule to make lint pass - fix the code instead
+- The `[lint]`-marked rules in this skill are also enforced by the lint script: for loops (`no-loops`), ternaries (`no-ternary`), if-braces (`curly`), import order (`import/order`), inline type imports (`consistent-type-imports`), sorted object keys (`sort-keys-fix`), member naming (`@typescript-eslint/naming-convention`), unused vars, no-console, and all Prettier formatting. They stay documented so code is written right the first time; the linter is the safety net
+- When a project has no lint setup, scaffold it: scripts in `package.json`, ESLint config from the rule inventory, `.prettierrc` - see [linting/linting-workflow.md](linting/linting-workflow.md)
 - This ensures consistency with project linting rules and saves time
 
-**NO FOR LOOPS** (CRITICAL):
+**NO FOR LOOPS** (CRITICAL) `[lint]`:
 - FOR LOOPS ARE PROHIBITED - use `.map()` or `.reduce()` instead
 - No `for`, `for...of`, or `for...in` loops allowed
 - Transformations → `.map()`, Aggregations → `.reduce()`, Filtering → `.filter()`
-- See [patterns/code-style.md](patterns/code-style.md) for detailed examples
+- The lint script enforces this (`no-loops`); when lint reports a loop, rewrite it manually
+- See [style/code-style.md](style/code-style.md) for detailed examples
 
 **NO INLINE ARROW FUNCTIONS** (CRITICAL):
 - ALL arrow functions must use block syntax with explicit `return` — no exceptions
 - `(x) => x + 1` is WRONG. Always write `(x) => { return x + 1 }`
 - This applies everywhere: `.map()`, `.reduce()`, `.filter()`, `.find()`, `Array.from()`, callbacks, event handlers — no inline expressions
 - Coverage tools cannot track branches on single-line arrow functions, producing false positives
-- See [patterns/code-style.md](patterns/code-style.md) for examples
+- See [style/code-style.md](style/code-style.md) for examples
+
+**NO `let` — SWITCH OVER IF/ELSE CHAINS (CRITICAL)**:
+- `let` is PROHIBITED — every binding is `const`
+- Branch-dependent values are returned from an extracted function, never accumulated into a mutable variable
+- Branching on the same value across multiple cases uses a `switch`, never an if/else chain comparing one variable repeatedly
+- Every switch MUST be encapsulated in a well-named function: each case uses a `{}` block and `return`s (or `throw`s in `default`) — no `break`, no fallthrough
+- `default` MUST handle unsupported cases explicitly (throw or documented fallback) — never silent fallthrough
+- See [style/code-style.md](style/code-style.md) for wrong/right examples
 
 **NO COMMENTS** (CRITICAL):
 - Zero comments allowed in any code - no exceptions
 - Code must be self-documenting through clear naming
 - If you need a comment, your code needs refactoring
 - Only `// TODO: Remove when [condition]` is temporarily acceptable
+
+**BOOLEAN PREFIXES & FALSY DEFAULTS** (CRITICAL):
+- Every boolean — variable, property, parameter, return type, INCLUDING `Promise<boolean>` returns — must use a prefix: `is*`, `has*`, `can*`, `should*`, `will*`, `did*` (`isActive`, `hasConflict`, `shouldSkipHistory`, `isEngineInstalled(): Promise<boolean>`)
+- Optional boolean flags default to falsy. If the common case is "on", INVERT THE NAME instead of defaulting to true: `shouldSkipHistory?: boolean` checked as `if (!params.shouldSkipHistory)` — never `recordHistory !== false`
+- Never write inverted boolean checks: `if (x.flag !== false)` and `if (x.flag === true)` both hide a truthy default — FAIL
+- Exception: React props mirroring native HTML attributes (`disabled`, `checked`) keep the DOM name
+- Truthy defaults are acceptable only for persisted settings/business constants (pagination `page = 1`, `defaultSettings`)
+- See [style/naming-convention.md](style/naming-convention.md) and [style/code-style.md](style/code-style.md)
 
 **NO EXPORTED INSTANCES** (CRITICAL):
 - **NEVER export instantiated class objects**: `export const x = new X()` is an anti-pattern
@@ -418,12 +481,13 @@ secretServiceSingleton().decryptSecret(secret)
 **Business Logic**:
 - Use Cases: Always singleton objects (prevents nesting)
 - Components: Complex domain logic (3+ states, self-contained)
-- Services: Simple logic (singleton preferred, class if methods call each other)
+- Services: Simple logic (singleton preferred, class if methods call each other or the service needs helper functions)
 - Repositories: Always classes
 - **See "NO EXPORTED INSTANCES" section above for singleton pattern**
 
 **Object Params Pattern**:
 - Business logic layers → ALWAYS use object params (even 1 parameter)
+- Protected `_` helper methods on a service class → Internal implementation detail: a single positional domain value is acceptable (e.g. `_decryptData = (data?: string) => { ... }`, as in the class service template); multiple inputs still use object params
 - Utility layer → Conditional (skip if name implies parameter)
 
 **One Element Per File**:
@@ -432,6 +496,9 @@ secretServiceSingleton().decryptSecret(secret)
 
 **CRITICAL: Module Export Pattern**:
 - **NEVER export multiple standalone functions** from a single file
+- **NEVER export a bare standalone function — even when it is the file's only export**. A single function is still wrapped in a singleton service object (e.g. `export const dateParserService = { parse(params) {...} }`, not `export function parseDate(...)`). The only function-shaped exports allowed are React/UI components.
+- **A service file exports exactly ONE element** (a class or a singleton object) and **never declares module-level (root-of-file) helper functions alongside it**. Any helper that serves the service becomes a member of the service itself: on a class, a `protected` method prefixed with a single underscore (`protected _parseUser(...)`) accessed via `this`; on a singleton object, an underscore-prefixed property that is never exposed to consumers
+- **The presence of helpers signals the class pattern** — methods calling each other via `this` (see the Class vs Object decision guide)
 - **ALWAYS group related functions** into a singleton service object
 - **ALWAYS use object params** for all methods in service objects
 - **NEVER use barrel exports** (re-exporting from index.ts) for business logic

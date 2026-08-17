@@ -8,6 +8,8 @@ When user says: "cleanup this code", "review this file", "check code quality", o
 
 ## Process
 
+Run the project's lint script first (`lint-fix`, then `lint` to verify). Sections marked `[lint]` below are also enforced by the linter: auto-fixable issues are already resolved by `lint-fix`, and any remaining violations come with a lint report that guides the manual fix. The checks stay in this checklist to catch what the linter cannot fix on its own.
+
 Run through each checklist section and report violations with file:line references. Style checks below reference the `style/` docs; structure checks reference the `architecture/` docs.
 
 ---
@@ -30,9 +32,9 @@ Run through each checklist section and report violations with file:line referenc
 
 ---
 
-### 2. For Loops Check
+### 2. For Loops Check `[lint]`
 
-**Rule**: FOR LOOPS ARE PROHIBITED.
+**Rule**: FOR LOOPS ARE PROHIBITED. Enforced by lint (`no-loops/no-loops`, not auto-fixable) - when lint reports a loop, rewrite it with the functional alternative.
 
 | Pattern | Status | Alternative |
 |---------|--------|-------------|
@@ -52,7 +54,7 @@ Run through each checklist section and report violations with file:line referenc
 
 **Rule**: Multiple logical branches must span multiple lines for accurate code coverage.
 
-#### Ternary Operators
+#### Ternary Operators `[lint]`
 
 ```typescript
 // ❌ WRONG - ternary operators are prohibited
@@ -83,7 +85,7 @@ const result = getResult()
 #### If Statements
 
 ```typescript
-// ❌ WRONG - no braces
+// ❌ WRONG - no braces (auto-fixed by lint: `curly`)
 if (condition) doSomething()
 
 // ❌ WRONG - single line braces
@@ -188,6 +190,22 @@ A leading underscore is an allowed private-file marker and MUST NOT be flagged a
 
 **Avoid**: `visible`, `permission`, `active` (missing prefix)
 
+**Also check**:
+- `Promise<boolean>` return types need the prefix too: `engineInstalled(): Promise<boolean>` ❌ FAIL → `isEngineInstalled()` ✅ PASS
+- Local boolean variables and destructured props, not just interface fields
+- DOM-mirror props (`disabled`, `checked`) are ✅ PASS — they mirror native HTML attributes
+
+#### Falsy Boolean Defaults
+
+**Rule**: Optional boolean flags default to falsy. Never encode a truthy default through an inverted check.
+
+| Pattern | Status | Fix |
+|---------|--------|-----|
+| `if (x.flag !== false)` | ❌ FAIL | Invert the name: `shouldSkipFlag?: boolean` + `if (!x.shouldSkipFlag)` |
+| `if (x.flag === true)` | ❌ FAIL | `if (x.flag)` |
+| Destructured default `flag = true` | ❌ FAIL | Rename inverted so default is `false` |
+| Persisted settings constant (`cleanText: true` in `defaultSettings`) | ✅ PASS | Sensible business default |
+
 #### Timestamp Naming
 
 | Field | Suffix | Example |
@@ -213,6 +231,7 @@ A leading underscore is an allowed private-file marker and MUST NOT be flagged a
 | Service | Either | Depends on `this` usage |
 
 **Service Decision**:
+- Service needs helper functions → Use class (helpers become `protected _` methods)
 - Methods call each other via `this` → Use class
 - Methods are independent → Use singleton (preferred)
 
@@ -267,23 +286,73 @@ findOneById(params: { id: string }): Promise<Model>
 
 ### 9. Export Pattern Check
 
-**Rule**: ONE export per file (grouped into service object).
+**Rule**: ONE export per file (grouped into service object). No bare function exports — even a single function is wrapped in a singleton service object.
 
 ```typescript
 // ❌ WRONG - multiple standalone exports
 export function parseRegex(value: unknown): RegExp | null { ... }
 export function isRegexString(value: unknown): boolean { ... }
 
+// ❌ WRONG - single bare function export (still not allowed)
+export function parseDate(value: unknown): Date | null { ... }
+
 // ✅ CORRECT - singleton service object
 export const regexParserService = {
   parse(params: { value: unknown }): RegExp | null { ... },
   isString(params: { value: unknown }): boolean { ... },
 }
+
+// ✅ CORRECT - even a single function is wrapped in a service object
+export const dateParserService = {
+  parse(params: { value: unknown }): Date | null { ... },
+}
 ```
+
+**Exception**: React/UI components (function components) are the only function-shaped exports allowed.
 
 ---
 
-### 10. Barrel Export Check
+### 10. Root-level Helper Functions Check
+
+**Rule**: A service file must export exactly one element (a class or a singleton object) and must NOT declare module-level (root-of-file) helper functions alongside it. Any helper that serves the service becomes a member of the service itself.
+
+Flag any non-exported function declared at module scope (including `const` arrow functions) in a file that exports a service/class/object:
+
+| Pattern | Status | Fix |
+|---------|--------|-----|
+| `function helper(...)` or `const helper = (...) => {...}` at module scope, file exports a service/class/object | ❌ FAIL | Move into the class as a `protected _method` called via `this` |
+| Helper as `protected _method` on the service class | ✅ PASS | - |
+| `_`-prefixed property on a singleton object, never called by consumers | ✅ PASS | Consider class pattern instead |
+
+```typescript
+// ❌ WRONG - module-level helper next to the service export
+const parseUser = (raw: RawUser): UserModel => {
+  return { id: raw.id, name: raw.userName }
+}
+
+export class UserService {
+  getUser(params: { id: string }): UserModel {
+    return parseUser(fetchRaw(params.id))
+  }
+}
+
+// ✅ CORRECT - helper folded into the class as a protected _ method
+export class UserService {
+  getUser(params: { id: string }): UserModel {
+    return this._parseUser(fetchRaw(params.id))
+  }
+
+  protected _parseUser(raw: RawUser): UserModel {
+    return { id: raw.id, name: raw.userName }
+  }
+}
+```
+
+**Signal**: If the service needs helpers at all, prefer the class pattern (methods calling each other via `this`) per the Class vs Object decision guide.
+
+---
+
+### 11. Barrel Export Check
 
 **Rule**: NO index.ts files that only re-export.
 
@@ -304,7 +373,7 @@ import { regexService } from '#src/business/service/regex-service.js'
 
 ---
 
-### 11. Never Keyword in Enum Switch Check
+### 12. Never Keyword in Enum Switch Check
 
 **Rule**: Use exhaustive type checking with `never`.
 
@@ -318,12 +387,67 @@ switch (status) {
 
 // ✅ CORRECT - compile-time safety
 switch (status) {
-  case 'active': return 1
-  case 'inactive': return 2
-  default:
+  case 'active': {
+    return 1
+  }
+  case 'inactive': {
+    return 2
+  }
+  default: {
     throw typeUtil.exhaustiveError('Unknown status', status)
+  }
 }
 ```
+
+---
+
+### 13. `let` & If/Else Chain Check
+
+**Rule**: `let` is prohibited (`const` only). Branching on the same value across multiple cases is a `switch`, encapsulated in a function.
+
+| Pattern | Status | Fix |
+|---------|--------|-----|
+| `let x` followed by branch assignments | ❌ FAIL | Extract a function that returns per branch, call it into a `const` |
+| `if (v === 'a') ... else if (v === 'b') ... else if (v === 'c')` (same value) | ❌ FAIL | `switch` encapsulated in a function |
+| Switch inline in main flow (not inside a function) | ❌ FAIL | Wrap in a well-named function (`resolveX`, `mapXToY`) |
+| `case 'x':` without `{}` block / uses `break` | ❌ FAIL | Braced case blocks that `return` (or `throw` in `default`) |
+| `default` silently falls through or returns uninitialized value | ❌ FAIL | `default: { throw ... }` or documented fallback return |
+
+```typescript
+// ❌ WRONG - if/else chain on one value, mutating a let
+let appDataDir
+if (platform === 'darwin') {
+  appDataDir = darwinPath
+} else if (platform === 'win32') {
+  appDataDir = process.env.APPDATA
+} else if (platform === 'linux') {
+  appDataDir = linuxPath
+} else {
+  throw new Error(`unsupported platform: ${platform}`)
+}
+
+// ✅ CORRECT - switch encapsulated in a function, called into a const
+const resolveAppDataDir = () => {
+  switch (process.platform) {
+    case 'darwin': {
+      return darwinPath
+    }
+    case 'win32': {
+      return process.env.APPDATA
+    }
+    case 'linux': {
+      return linuxPath
+    }
+    default: {
+      throw new Error(`unsupported platform: ${process.platform}`)
+    }
+  }
+}
+
+const appDataDir = resolveAppDataDir()
+```
+
+**Note**: Plain `if/else` on distinct boolean conditions is ✅ PASS — the rule targets chains comparing one value repeatedly.
 
 ---
 
@@ -361,8 +485,10 @@ After running the cleanup command, provide a structured report:
 
 ## Auto-fixable
 
+- [ ] Run `lint-fix` (ESLint, Prettier, jsonsort) first - it auto-fixes the mechanical `[lint]` issues (import order, sorted keys, braces, formatting)
+
 The following issues can be auto-fixed:
-- [ ] Replace ternary operators with if/else or local functions
+- [ ] Replace ternary operators with if/else or local functions (flagged by lint `no-ternary`, rewritten manually)
 - [ ] Object params pattern
 ```
 
@@ -371,15 +497,20 @@ The following issues can be auto-fixed:
 ## Quick Reference Card
 
 ```
+LINT FIRST    → Run `lint-fix` before reviewing; `[lint]` rules are also enforced by the lint script
 COMMENTS      → None (except TODO with condition)
-FOR LOOPS     → Use .map() / .reduce() / .filter()
-TERNARY       → PROHIBITED — use if/else or extract to function
+FOR LOOPS     → Use .map() / .reduce() / .filter() `[lint]`
+TERNARY       → PROHIBITED - use if/else or extract to function `[lint]`
 MULTI-LINE    → If, arrow functions
 FILE ORG      → Correct directories only
-NAMING        → kebab-case files, action verbs, boolean prefixes
+NAMING        → kebab-case files, action verbs, boolean prefixes (incl. Promise<boolean>)
+BOOL DEFAULTS → falsy; no `!== false` / `= true` flags; invert the name (shouldSkip*)
 CLASS/OBJECT  → Repo/DAL/Entity=class, UseCase/Handler=singleton
 EXPORTS       → No instantiated objects, one element per file
+ROOT HELPERS  → No module-scope functions in service files (protected _ methods)
 OBJECT PARAMS → Business logic always uses { params }
 BARREL FILES  → No index.ts re-exports
 ENUM SWITCH   → Use never for exhaustive check
+LET           → PROHIBITED; const only, branch values from returning functions
+IF/ELSE CHAIN → Same value across cases = switch in a function (braced cases, default throws)
 ```

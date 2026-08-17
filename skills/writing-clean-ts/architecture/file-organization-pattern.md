@@ -80,7 +80,8 @@ src/business/service/
 | Scenario | Approach | Example |
 |----------|----------|---------|
 | Single implementation | Flat file | `src/business/service/secret-service.ts` |
-| Multiple implementations of one interface | Subfolder | `src/business/service/formatting-strategy/json.ts` |
+| Multiple implementations of one interface (open — callers pick one) | Subfolder | `src/business/service/formatting-strategy/json.ts` |
+| Closed pattern implementation (main entry + private strategies) | Component folder | `src/business/component/text-formatting/index.ts` (strategies are `_private`) |
 | Preconfigured entry points (presets) | Subfolder in controller | `src/controller/preset/console-simple-string.ts` |
 | Domain with multiple endpoints | Subfolder in controller | `src/controller/express/project/get-projects-all.ts` |
 
@@ -109,6 +110,29 @@ src/business/service/
 ```
 
 Both options are valid. Choose Option A when other layers import the interface independently. Choose Option B when the interface is only meaningful within the context of its implementations.
+
+The examples above are the **open** case: each strategy is a standalone, independently selectable unit that outside callers (e.g., presets) pick from, so they live as public files in `service/`. For the case where one entry file owns the strategies, see the next section.
+
+### Closed Pattern Implementations → Component Layer
+
+When a few files together form a **closed pattern implementation** — one main entry file that owns and dispatches to multiple strategy/collaborator services (strategy pattern, chain of responsibility, rule engine, parser dispatch — any pattern of this shape) — the whole bunch MUST live in **one folder** under **`src/business/component/`**, never in `service/` and never split across layers.
+
+The nature of such patterns is that exactly **one thing is exposed** (the entry) and the other things are **private, not accessible from outside**. That is precisely the component layer's encapsulation contract, so the file structure must mirror the runtime structure:
+
+```
+src/business/component/
+└── text-formatting/
+    ├── _json.ts              # private strategy (leading `_` = never imported outside this folder)
+    ├── _simple-string.ts     # private strategy
+    ├── service.ts            # private implementation — selects/switches between the strategies
+    └── index.ts              # the ONLY public entry point
+```
+
+**Rules:**
+- The entire bunch — entry, all strategy files, and the shared interface when it is tightly coupled to the strategies — is ONE folder in `src/business/component/`.
+- Only `index.ts` is public. Strategy files are private: a leading `_` prefix (flat) or a `strategy/` subfolder. They must never be imported from outside the component.
+- Do NOT split the pattern across locations (entry in one folder, strategies in another). Splitting it breaks the public/private boundary that is the whole point of the pattern.
+- If each strategy is instead meant to be independently picked by outside callers, it is not a closed pattern — use the open subfolder grouping in `service/` described above.
 
 ### Preset Pattern Example
 
@@ -314,13 +338,18 @@ What kind of logic is this?
     ├─ Reusable infrastructure (no business rules, destined for a shared package) → src/lib/
     └─ Business logic (has rules/validation) → src/business/
         ↓
-    How complex is it?
-        ├─ Simple functions (1-2 functions) → src/business/service/
-        │   └─ Export as singleton object
-        ├─ Complex state/rules (3+ states) → src/business/component/
-        │   └─ Export via index.ts public API
-        └─ Orchestrates multiple services → src/business/use-case/
-            └─ Export as singleton object
+    Do several files form a closed pattern (one main entry + private strategies)?
+        ├─ Yes → src/business/component/<name>/        # ONE folder, only index.ts public
+        │          └─ Strategies are _private or in strategy/ — never imported outside
+        └─ No
+            ↓
+        How complex is it?
+            ├─ Simple functions (1-2 functions) → src/business/service/
+            │   └─ Export as singleton object
+            ├─ Complex state/rules (3+ states) → src/business/component/
+            │   └─ Export via index.ts public API
+            └─ Orchestrates multiple services → src/business/use-case/
+                └─ Export as singleton object
 
 I'm refactoring existing code to clean architecture
     ↓
@@ -397,6 +426,7 @@ Before creating a new file, verify:
 
 - [ ] Is the location correct according to the directory structure?
 - [ ] Am I creating an arbitrary folder outside the allowed set (`app-boot`, `controller`, `business`, `dal`, `ui-component`, `util`, `lib`)? → STOP. Business logic goes in `src/business/`, project-local helpers in `src/util/`, reusable extractable infrastructure in `src/lib/`
+- [ ] Do these files form a closed pattern (main entry + multiple strategies)? → The WHOLE bunch goes in one folder in `src/business/component/`; only `index.ts` is public, strategy files are private and never imported from outside
 - [ ] Am I exporting multiple standalone functions? → STOP, group into a service object
 - [ ] Am I using object params for all service methods? → MUST use `{ param: value }` syntax
 - [ ] Am I creating a barrel export (index.ts)? → Only for types or component public API

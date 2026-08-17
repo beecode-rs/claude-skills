@@ -6,16 +6,58 @@ This document defines naming standards for all layers in the TypeScript codebase
 
 All files and folders use **kebab-case** (dashed-case):
 
-| Type         | Example                                  |
-| ------------ | ---------------------------------------- |
-| Service      | `secret-service.ts`                      |
-| Repository   | `project-repo.ts`                        |
-| DAL          | `project-dal.ts`                         |
-| Entity       | `project-entity.ts`                      |
-| Use Case     | `git-use-case.ts`                        |
-| Handler      | `get-projects-all.ts`, `post-project.ts` |
-| Types/Models | `project-model.ts`, `feature-types.ts`   |
-| Folders      | `some-folder/`, `service/`               |
+| Type            | Example                                                   |
+| --------------- | --------------------------------------------------------- |
+| Controller      | `ipc-controller.ts`, `project-controller.ts`              |
+| Service         | `secret-service.ts` (business service layer ONLY)         |
+| Repository      | `project-repo.ts`                                         |
+| DAL             | `project-dal.ts`                                          |
+| Entity          | `project-entity.ts`                                       |
+| Use Case        | `git-use-case.ts`                                         |
+| Handler         | `get-projects-all.ts`, `post-project.ts` (Express routes) |
+| Util            | `lang-util.ts`, `object-util.ts`, `path-util.ts`         |
+| Lib             | `tray.ts`, `piper-engine.ts` (no suffix)                  |
+| Types/Models    | `project-model.ts`, `feature-types.ts`                    |
+| Folders         | `some-folder/`, `service/`                                |
+
+### Layer File Suffixes
+
+The file suffix tells a reader which layer a file belongs to before they open it. The `-service` suffix belongs **exclusively** to the business service layer (`src/business/service/`) — anywhere else it is misleading, because utils, DALs, controllers, and lib modules are not business services. Each layer uses its own suffix:
+
+| Layer               | Folder                    | Suffix        | Example File        | Example Export                                |
+| ------------------- | ------------------------- | ------------- | ------------------- | --------------------------------------------- |
+| Controller module   | `src/controller/`         | `-controller` | `ipc-controller.ts` | `ipcController` (camelCase singleton)         |
+| Service             | `src/business/service/`   | `-service`    | `tts-service.ts`    | `TtsService` class / `ttsService` singleton   |
+| Repository          | `src/business/repo/`      | `-repo`       | `project-repo.ts`   | `ProjectRepo` class                           |
+| Use Case            | `src/business/use-case/`  | `-use-case`   | `git-use-case.ts`   | `gitUseCase` singleton                        |
+| DAL                 | `src/dal/`                | `-dal`        | `history-dal.ts`    | `HistoryDal` class                            |
+| Entity              | `src/dal/*/entity/`       | `-entity`     | `project-entity.ts` | `ProjectEntity` class                         |
+| Util                | `src/util/`               | `-util`       | `lang-util.ts`      | `langUtil` (camelCase singleton)              |
+| Lib                 | `src/lib/`                | none          | `tray.ts`           | `Tray` class / `tray` singleton               |
+
+A `*-service.ts` file outside `src/business/service/` is a naming violation — rename it to its layer's suffix (or drop the suffix entirely, for lib).
+
+#### Util Layer Exceptions
+
+Four well-known utility files do not take the `-util` suffix because their names are already unambiguous:
+
+- `config.ts`
+- `constants.ts`
+- `logger.ts`
+- `error.ts`
+
+Every other util file ends in `-util` (`lang-util.ts`, `object-util.ts`, `path-util.ts`, `date-util.ts`) and exports a camelCase singleton named `<name>Util` (`langUtil`, `objectUtil`, `pathUtil`).
+
+#### Lib Layer — No Suffix, Never `-service`
+
+Lib code wraps infrastructure and external systems (Electron tray and global shortcuts, external process engines, DB or message-broker connections). It contains no business logic, so it is not a service — neither in the filename nor in the export name:
+
+- ❌ `src/lib/tray-service.ts` exporting `TrayService` → ✅ `src/lib/tray.ts` exporting `Tray`
+- ❌ `src/lib/piper-engine-service.ts` → ✅ `src/lib/piper-engine.ts`
+
+#### Express Endpoint Files
+
+Files under `src/controller/express/` keep their endpoint-based handler names (`get-projects-all.ts`, `post-project.ts`) — see [rest-api-url-conventions.md](../architecture/rest-api-url-conventions.md). The `-controller` suffix applies to controller modules that implement a whole interface or domain in one file (IPC, event bus, message queue, cron), e.g. `ipc-controller.ts` exporting `ipcController`.
 
 ### Private Files (Leading Underscore)
 
@@ -23,7 +65,7 @@ A single leading underscore (`_`) on a filename is an allowed **visibility marke
 
 - The text **after** the underscore is still kebab-case, so `_in-progress.ts` is valid.
 - The underscore is a visibility marker, not part of the name.
-- This mirrors the `_` prefix convention for private/protected members in classes and objects (for example `private _internalDecrypt`).
+- This mirrors the `_` prefix convention for protected members in classes and objects (for example `protected _internalDecrypt`).
 
 **Structure:**
 ```
@@ -148,6 +190,8 @@ For detailed decision-making guidance, examples, and common mistakes, see [class
 | ------------------------- | --------- | ------------------- | --------------------------------- | -------------------------------- |
 | **Service** (with `this`) | Class     | PascalCase          | `export class SecretService`      | `new SecretService().decrypt()`  |
 | **Service** (independent) | Singleton | camelCase           | `export const calculationService` | `calculationService.calculate()` |
+| **Util**                  | Singleton | camelCase           | `export const langUtil`           | `langUtil.detectLang()`          |
+| **Lib**                   | Class or Singleton | PascalCase / camelCase | `export class Tray`       | `new Tray()`                     |
 | **Repository**            | Class     | PascalCase          | `export class ProjectRepo`        | `new ProjectRepo().findMany()`   |
 | **Use Case**              | Singleton | camelCase           | `export const gitUseCase`         | `gitUseCase.getCommits()`        |
 | **DAL**                   | Class     | PascalCase          | `export class ProjectDal`         | `new ProjectDal()`               |
@@ -158,7 +202,7 @@ For detailed decision-making guidance, examples, and common mistakes, see [class
 
 ## Method Naming
 
-All methods use **camelCase**.
+All methods use **camelCase** `[lint]`. Member casing and underscore prefixes (`protected _`, private `__`) are enforced by the ESLint `@typescript-eslint/naming-convention` rule (see [../linting/eslint-rules.md](../linting/eslint-rules.md)); the naming semantics below are not lint-checkable:
 
 ### Action-Based Naming
 
@@ -372,11 +416,13 @@ user.active = true                    // Is active? Or the active item?
 function isValidEmail(email: string): boolean
 function hasRequiredPermissions(user: User): boolean
 function canUserAccessResource(user: User, resource: Resource): boolean
+async function isValidToken(token: string): Promise<boolean>
 
 // ✗ Bad
 function validEmail(email: string): boolean       // Missing is prefix
 function checkPermission(user: User): boolean     // Use has/can instead
 function userAccess(user: User): boolean          // Unclear return type
+async function engineInstalled(): Promise<boolean> // Promise<boolean> needs the prefix too
 ```
 
 ### Avoid Negated Names
@@ -459,9 +505,9 @@ enum SomeThingMapper {
 
 ## Code Style Conventions
 
-### If Statements
+### If Statements `[lint, auto-fix]`
 
-**IMPORTANT:** Always use curly braces for if statements, even for single-line returns.
+**IMPORTANT:** Always use curly braces for if statements, even for single-line returns. The lint script enforces this (`curly`) and auto-fixes missing braces.
 
 **Bad:**
 ```typescript

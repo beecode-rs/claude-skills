@@ -19,14 +19,16 @@ Load and apply ONLY the `style/` docs:
 
 Do **not** load `architecture/*` for this pass.
 
+Run the project's `lint-fix` and `lint` scripts first - items marked `[lint]` below are also enforced by the linter, so auto-fixable issues are already resolved and remaining violations come with a lint report that guides the manual fix.
+
 ## Checklist
 
 Run each check; report violations with `file:line`.
 
 1. **Comments** — none (only `// TODO: Remove when [condition]` is temporary)
-2. **For-loops** — none (use `.map()` / `.reduce()` / `.filter()`)
-3. **Ternary & inline arrows** — none (multi-line `if/else`, block-syntax arrows)
-4. **Naming** — kebab-case files, action verbs, boolean prefixes (`is`/`has`/`can`/`should`), `At` timestamp suffix
+2. **For-loops** — none (use `.map()` / `.reduce()` / `.filter()`) `[lint]`
+3. **Ternary & inline arrows** — none (multi-line `if/else`, block-syntax arrows); ternary is lint-enforced (`no-ternary`), inline arrows are manual
+4. **Naming** — kebab-case files, action verbs, boolean prefixes (`is`/`has`/`can`/`should`, incl. `Promise<boolean>` returns; DOM-mirror props like `disabled`/`checked` exempt), `At` timestamp suffix, falsy boolean defaults (no `= true` flags, no `!== false` / `=== true` checks; invert the name instead)
 5. **Function size** — one responsibility, early returns, extracted helpers
 6. **Object params** — business layers use object params (even 1 param); utility layer conditional
 7. **Exports** — one element per file, no barrel `index.ts`, no exported instances

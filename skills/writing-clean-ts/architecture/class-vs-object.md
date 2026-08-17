@@ -14,6 +14,7 @@ Does the layer REQUIRE a specific pattern?
 │   └─ Handler → ALWAYS use singleton object
 │
 └─ No (Service layer) → Choose based on method dependencies
+    ├─ Does the service need helper functions? → Helpers become protected `_` methods → Use class
     ├─ Do methods call each other via `this`? → Use class
     └─ Are methods independent? → Use singleton object (preferred)
 ```
@@ -45,8 +46,32 @@ Only the **Service layer** allows choosing between patterns:
 
 | Pattern | When to Use | Example |
 |---------|-------------|---------|
-| **Singleton Object** (Preferred) | Methods are independent, no need for `this` | `export const calculationService` |
-| **Class** | Methods need to reference each other via `this` | `export class SecretService` |
+| **Singleton Object** (Preferred) | Methods are independent, no need for `this`, no helper functions | `export const calculationService` |
+| **Class** | Methods need to reference each other via `this`, or the service needs helper functions | `export class SecretService` |
+
+### Service Helper Functions
+
+A service file exports exactly **one element** (a class or a singleton object) and **never declares module-level (root-of-file) helper functions alongside it**. Any helper that serves the service becomes a member of the service itself:
+
+- **On a class**: a `protected` method prefixed with a single underscore, called via `this`:
+
+```typescript
+export class SecretService {
+  decrypt(params: { secret: string }): string {
+    return this._internalDecrypt(params.secret)
+  }
+
+  protected _internalDecrypt(value: string): string {
+    // implementation
+  }
+}
+```
+
+- **On a singleton object**: an underscore-prefixed property that is never exposed to consumers (convention only — it is still technically reachable, which is why the class pattern is preferred).
+
+**The presence of helpers is itself a signal to choose the class pattern**: `protected _` methods give real encapsulation and let helpers call each other via `this`, so a service that needs helpers should be a class.
+
+**Object params on helper methods**: The object-params rule ("Service: always") governs the public API. `protected _` helpers are internal implementation detail, so a single positional domain value is acceptable (e.g. `_decryptData = (data?: string) => { ... }`, matching the class service template); multiple inputs still use object params.
 
 ## Pattern Details
 
@@ -170,6 +195,7 @@ export const classServiceSingleton = singletonPattern(() => new ClassService())
 **When to use:**
 - ✅ Methods are completely independent
 - ✅ No shared internal state needed
+- ✅ No helper functions needed (a service that needs helpers should be a class — see "Service Helper Functions" above)
 - ✅ Simpler, functional approach is sufficient
 - ✅ You want to prevent reuse (use cases in other use cases)
 
@@ -197,6 +223,7 @@ const total = await calculationService.calculateTotal(items)
 
 **When to use:**
 - ✅ Methods need to reference each other via `this`
+- ✅ The service needs helper functions (they become `protected _` methods called via `this`)
 - ✅ Dependency injection is required (repositories, DALs)
 - ✅ Working with ORM patterns (entities)
 - ✅ You need constructor logic
@@ -317,6 +344,36 @@ export const authUseCase = {
 ```
 
 ## Common Mistakes
+
+### ❌ Module-Level Helper Functions Next to a Service
+
+```typescript
+// ❌ WRONG - helper function at module scope, outside the service
+const parseUser = (raw: RawUser): UserModel => {
+  return { id: raw.id, name: raw.userName }
+}
+
+export class UserService {
+  getUser(params: { id: string }): UserModel {
+    const raw = fetchRaw(params.id)
+    return parseUser(raw)
+  }
+}
+
+// ✅ CORRECT - helper is a protected _ member of the service class
+export class UserService {
+  getUser(params: { id: string }): UserModel {
+    const raw = fetchRaw(params.id)
+    return this._parseUser(raw)
+  }
+
+  protected _parseUser(raw: RawUser): UserModel {
+    return { id: raw.id, name: raw.userName }
+  }
+}
+```
+
+**Why this matters:** A service file must export exactly one element. Module-level helpers leak implementation outside the service boundary, cannot be encapsulated, and are invisible to `this`-based reuse. Their presence also signals the class pattern fits better (see "Service Helper Functions").
 
 ### ❌ Using Class for Simple Service
 

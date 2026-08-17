@@ -15,7 +15,8 @@ This is an abstract layer pattern. See framework-specific implementations:
 **See [naming-convention.md](../../style/naming-convention.md) for complete naming standards.**
 
 ### Backend Controllers
-- **File:** `kebab-case` (e.g., `get-projects-all.ts`, `post-project.ts`, `audit-log.ts`)
+- **File (Express endpoints):** endpoint-based names (e.g., `get-projects-all.ts`, `post-project.ts`)
+- **File (controller modules — IPC, event bus, message queue, cron):** `<name>-controller.ts` (e.g., `ipc-controller.ts`)
 - **Export:** `camelCase` singleton object (always)
 - **Pattern:** Always singleton objects with interface-specific methods
 - **Location:** `src/controller/[interface-type]/[domain]/`

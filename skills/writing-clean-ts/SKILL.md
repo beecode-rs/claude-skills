@@ -1,6 +1,6 @@
 ---
 name: writing-clean-ts
-description: Expert in TypeScript codebase patterns for backend and frontend. Helps with creating services, repositories, DALs, entities, controllers, handlers, use cases, React components, and UI screens. Make sure to use this skill whenever the user mentions TypeScript, Node.js, Express, TypeORM, React, React Router, React Native, Expo, creating an API endpoint, building a feature, implementing CRUD operations, or asks about codebase architecture - even if they don't explicitly say "clean architecture" or mention specific layers. Also covers project linting setup (ESLint, Prettier, json-sort-cli, lint scripts in package.json) - use when the user mentions lint, linting, eslint, prettier, formatting, json sorting, or scaffolding a new TypeScript project. For testing, use the test-typescript skill.
+description: Expert in TypeScript codebase patterns for backend and frontend. Helps with creating services, repositories, DALs, entities, controllers, handlers, use cases, React components, and UI screens. Make sure to use this skill whenever the user mentions TypeScript, Node.js, Express, TypeORM, React, React Router, React Native, Expo, creating an API endpoint, building a feature, implementing CRUD operations, or asks about codebase architecture - even if they don't explicitly say "clean architecture" or mention specific layers. Also covers project linting setup (ESLint, Prettier, json-sort-cli, lint scripts in package.json) - use when the user mentions lint, linting, eslint, prettier, formatting, json sorting, or scaffolding a new TypeScript project. Also covers ES module and import path setup (#src alias, absolute imports only, tsconfig paths, "type": "module") - use when the user mentions import paths, path aliases, ES modules, ESM, or relative imports. For testing, use the test-typescript skill.
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash
 ---
 
@@ -20,6 +20,7 @@ Provide expert guidance on writing code that follows the Node.js codebase conven
 - Writing Express handlers with Zod validation
 - Orchestrating business logic with use cases
 - Setting up or running linting, formatting, or JSON sorting (ESLint, Prettier, json-sort-cli)
+- Setting up ES modules with the `#src` path alias (absolute imports) in new or existing projects
 
 ## Architecture Overview
 
@@ -214,16 +215,57 @@ src/
     └── edit-form.tsx
 ```
 
-### 4. Path Aliases
+### 4. Imports: ES Modules & Path Aliases (MANDATORY)
+
+**Absolute imports only.** Every internal import uses the `#src/*` alias rooted at `src/`. Relative imports (`./sibling`, `../parent`) are PROHIBITED: they break silently when files move between layers and make deep chains unreadable (`../../../business/service/foo`). Always write `#src/business/service/foo-service` instead.
 
 ```typescript
-import { ... } from '#src/...'              // Internal project imports
+import { ... } from '#src/...'              // Internal project imports (MANDATORY)
 import { ... } from '@app/common/...'       // Shared (frontend + backend)
 import { ... } from '@app/node-common/...'  // Backend-specific
 import { ... } from '@app/react-common/...' // Frontend-specific
 ```
 
-Replace `@app` with your project name.
+`#src/*` is for code inside the current project. The `@app/*` aliases are for monorepo shared packages only; replace `@app` with your project name. A single-package project uses `#src` alone.
+
+Every project scaffolded or touched by this skill MUST run ES modules with the `#src` alias configured before any code is written:
+
+**package.json** (ES modules only, never CommonJS; the `imports` field makes `#src/*` resolve at runtime in plain Node):
+```json
+{
+  "type": "module",
+  "imports": {
+    "#src/*": "./dist/*.js"
+  }
+}
+```
+
+**tsconfig.json** (Node.js backend):
+```json
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "paths": {
+      "#src": ["./src"],
+      "#src/*": ["./src/*"]
+    }
+  }
+}
+```
+
+React/Vite projects use `"module": "ESNext"` with `"moduleResolution": "Bundler"` and the same `paths` entry. With `NodeNext`, internal imports carry explicit `.js` extensions (`#src/business/service/foo-service.js`); bundler resolution omits them.
+
+**Why `#src` and not an `@`-style alias:** the `#` prefix is a Node.js subpath import. It resolves at compile time through tsconfig `paths` and at runtime through the package.json `imports` field, so compiled output runs in plain Node without rewriting import paths. `@`-style aliases exist only in tsconfig and need a bundler plugin or a post-build rewriter to work at runtime.
+
+Where the code runs:
+- Node backend, dev: run with `tsx` (it honors tsconfig paths; `#src` needs no extra setup)
+- Node backend, build: `tsc`, then `tsc-alias -p tsconfig.build.json` only if you want rewritten relative paths in `dist` (the package.json `imports` mapping to `./dist/*.js` already resolves `#src/*` on its own)
+- Bundlers (Vite, webpack): `vite-tsconfig-paths` plugin or an equivalent `resolve.alias` entry mapping `#src` to `./src`
+
+When starting an app from scratch, the initial scaffold MUST also add the lint scripts to `package.json` (`lint`, `lint-fix`) together with the ESLint config, `.prettierrc`, and the lint dev dependencies - see the Linting section and [linting/linting-workflow.md](linting/linting-workflow.md). Set all of this up before writing any feature code.
+
+When joining an existing project without this setup, add it first. Rewrite relative imports to `#src` in every file you touch.
 
 ### 5. Code Style
 
@@ -247,7 +289,7 @@ Replace `@app` with your project name.
 
 - After writing or changing code, ALWAYS run the project's `lint-fix` script, then `lint` to verify it passes clean
 - NEVER hand-edit code to fix something `eslint --fix`, `prettier --write`, or `jsonsort` can fix
-- When scaffolding any TypeScript app, ALWAYS add the lint scripts to its `package.json` and generate the ESLint config (Node.js backend or React frontend flavor) from the extracted rule inventory, using the newest tool versions
+- When starting an app from scratch, ALWAYS add the lint scripts to its `package.json` (`lint`, `lint-fix`) and generate the ESLint config (Node.js backend or React frontend flavor) from the extracted rule inventory, using the newest tool versions - this is part of the initial scaffold, before any feature code (follow "Setting Up Linting In A New Project" in [linting/linting-workflow.md](linting/linting-workflow.md))
 - Full policy and scripts: [linting/linting-workflow.md](linting/linting-workflow.md)
 - Complete rule inventory for config generation: [linting/eslint-rules.md](linting/eslint-rules.md)
 
@@ -378,6 +420,7 @@ export class ProjectRepo extends CommonRepo<ProjectEntity, ProjectModel> {
 - ❌ Using the `-service` suffix outside `src/business/service/` (e.g., `src/util/lang-service.ts`, `src/lib/tray-service.ts`, `src/dal/history-service.ts`) → ✅ Match the layer's suffix: `-util` in `util/`, `-dal` in `dal/`, `-controller` for controller modules, and no suffix in `lib/` (see [naming-convention.md](style/naming-convention.md))
 - ❌ Exporting multiple standalone functions from one file → ✅ Group into singleton service object
 - ❌ Module-level private helper functions next to a service export (`const parseUser = ...` at root of file) → ✅ Fold them into the class as `protected _` methods called via `this`
+- ❌ Relative imports (`from '../business/service/foo'`, `from './bar'`) → ✅ Absolute `#src` alias imports only: `from '#src/business/service/foo-service'` `[lint]`
 - ❌ Creating index.ts barrel files → ✅ Import directly from source files (index.ts is boilerplate)
 - ❌ Creating parser modules with multiple exports → ✅ Use parser service template with singleton object
 
@@ -386,6 +429,7 @@ export class ProjectRepo extends CommonRepo<ProjectEntity, ProjectModel> {
 - ❌ Making controllers reusable → ✅ One controller per route
 - ❌ Not extracting URL params in controller → ✅ Controllers translate router → props
 - ❌ Business logic in UI components → ✅ Use services/repositories
+- ❌ Relative imports (`from '../ui-component/foo'`) → ✅ Absolute `#src` alias imports only `[lint]`
 
 ## Key Rules
 
@@ -396,9 +440,17 @@ export class ProjectRepo extends CommonRepo<ProjectEntity, ProjectModel> {
 - ALWAYS run `lint-fix` first before attempting manual fixes
 - Only manually fix lint issues if `lint-fix` is unsuccessful in fixing the issue
 - NEVER disable or downgrade a rule to make lint pass - fix the code instead
-- The `[lint]`-marked rules in this skill are also enforced by the lint script: for loops (`no-loops`), ternaries (`no-ternary`), if-braces (`curly`), import order (`import/order`), inline type imports (`consistent-type-imports`), sorted object keys (`sort-keys-fix`), member naming (`@typescript-eslint/naming-convention`), unused vars, no-console, and all Prettier formatting. They stay documented so code is written right the first time; the linter is the safety net
-- When a project has no lint setup, scaffold it: scripts in `package.json`, ESLint config from the rule inventory, `.prettierrc` - see [linting/linting-workflow.md](linting/linting-workflow.md)
+- The `[lint]`-marked rules in this skill are also enforced by the lint script: for loops (`no-loops`), ternaries (`no-ternary`), if-braces (`curly`), import order (`import/order`), relative imports (`no-relative-import-paths`), inline type imports (`consistent-type-imports`), sorted object keys (`sort-keys-fix`), member naming (`@typescript-eslint/naming-convention`), unused vars, no-console, and all Prettier formatting. They stay documented so code is written right the first time; the linter is the safety net
+- When a project has no lint setup, scaffold it: `lint`/`lint-fix` scripts in `package.json`, ESLint config from the rule inventory, `.prettierrc` - see [linting/linting-workflow.md](linting/linting-workflow.md). When starting an app from scratch this happens in the initial scaffold, never after the first feature
 - This ensures consistency with project linting rules and saves time
+
+**ABSOLUTE IMPORTS VIA `#src`** (CRITICAL) `[lint]`:
+- Every internal import is absolute through the `#src/*` alias: `import { fooService } from '#src/business/service/foo-service'`
+- Relative imports are PROHIBITED: no `./sibling`, no `../parent`, ever
+- Projects MUST use ES modules (`"type": "module"` in package.json) with `#src` mapped in tsconfig `paths` AND in the package.json `imports` field before any code is written
+- `#src` is a Node.js subpath import: compile time resolves through tsconfig `paths`, runtime through package.json `imports`, so built code runs in plain Node; dev uses `tsx`, bundlers use `vite-tsconfig-paths` or `resolve.alias`
+- The lint script enforces this (`no-relative-import-paths`); when lint reports a relative import, rewrite it to the `#src` alias
+- Full setup snippets: see "Imports: ES Modules & Path Aliases" (Process step 4)
 
 **NO FOR LOOPS** (CRITICAL) `[lint]`:
 - FOR LOOPS ARE PROHIBITED - use `.map()` or `.reduce()` instead

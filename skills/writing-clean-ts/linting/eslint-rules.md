@@ -2,6 +2,8 @@
 
 The complete rule inventory extracted from the reference monorepo (`~/code/visualiser`, shared config package `@app/config`). When generating an ESLint config for any new project, reproduce this rule set with the newest released tool versions. The rules are the fixed part; versions are always current at generation time.
 
+One addition beyond the reference repo: `no-relative-import-paths` enforces the skill's absolute-import policy (internal imports go through the `#src` alias only, never `./` or `../`).
+
 ## Two Flavors
 
 | Flavor | Factory | Use For | Config Source |
@@ -21,6 +23,7 @@ The two flavors are ~95% identical. Both are plain TypeScript strictness configs
 		"eslint-plugin-import": "latest",
 		"eslint-plugin-no-loops": "latest",
 		"eslint-plugin-no-only-tests": "latest",
+		"eslint-plugin-no-relative-import-paths": "latest",
 		"eslint-plugin-sort-keys-fix": "latest",
 		"globals": "latest",
 		"json-sort-cli": "latest",
@@ -113,6 +116,7 @@ The type-checked presets require `projectService: true` (TypeScript project awar
 | `import/newline-after-import` | `error` | |
 | `import/no-unresolved` | `off` | TypeScript handles resolution |
 | `import/order` | `error`, see below | |
+| `no-relative-import-paths/no-relative-import-paths` | `error`, `allowSameFolder: false` | absolute imports via `#src` alias only; blocks ALL relative imports (`./` and `../`) |
 | `sort-imports` | `error`, `ignoreDeclarationSort: true` | member sorting only; declaration order owned by `import/order` |
 | `no-duplicate-imports` | `error` | |
 
@@ -214,6 +218,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 import noLoops from 'eslint-plugin-no-loops'
 import sortKeysFix from 'eslint-plugin-sort-keys-fix'
 import noOnlyTests from 'eslint-plugin-no-only-tests'
+import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths'
 import eslintPluginImport from 'eslint-plugin-import'
 import globals from 'globals'
 
@@ -273,6 +278,7 @@ export default defineConfig([
 			'@typescript-eslint': tseslint.plugin,
 			'no-loops': noLoops,
 			'no-only-tests': noOnlyTests,
+			'no-relative-import-paths': noRelativeImportPaths,
 			'sort-keys-fix': sortKeysFix,
 			import: eslintPluginImport,
 		},
@@ -333,6 +339,7 @@ export default defineConfig([
 			'no-loops/no-loops': 'error',
 			'no-mixed-spaces-and-tabs': 'error',
 			'no-only-tests/no-only-tests': 'error',
+			'no-relative-import-paths/no-relative-import-paths': ['error', { allowSameFolder: false }],
 			'no-ternary': 'error',
 			'padding-line-between-statements': [
 				'error',

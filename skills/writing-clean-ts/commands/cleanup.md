@@ -451,6 +451,23 @@ const appDataDir = resolveAppDataDir()
 
 ---
 
+### 14. Import Paths Check `[lint]`
+
+**Rule**: Internal imports are absolute through the `#src/*` alias only. Relative imports (`./`, `../`) are prohibited; the project runs ES modules with the alias configured (`"type": "module"` + `"imports"` in package.json, `paths` in tsconfig).
+
+| Pattern | Status | Fix |
+|---------|--------|-----|
+| `import { x } from '#src/business/service/foo-service'` | ✅ PASS | |
+| `import { x } from '../business/service/foo-service'` | ❌ FAIL | Rewrite as `#src/business/service/foo-service` |
+| `import { x } from './foo-service'` (sibling) | ❌ FAIL | Rewrite as the full `#src/<layer>/.../foo-service` path |
+| package.json missing `"type": "module"` | ❌ FAIL | Add it before writing any code |
+| package.json missing `"imports": { "#src/*": "./dist/*.js" }` | ❌ FAIL | Add it so `#src/*` resolves at runtime in plain Node (subpath import) |
+| tsconfig missing `"paths": { "#src": ["./src"], "#src/*": ["./src/*"] }` | ❌ FAIL | Configure both entries; bundlers additionally need `vite-tsconfig-paths` or `resolve.alias` |
+
+**Note**: Private files (leading `_`) are still imported by absolute `#src` path from within their folder; `@app/*` monorepo shared-package imports are also ✅ PASS.
+
+---
+
 ## Output Format
 
 After running the cleanup command, provide a structured report:
@@ -503,6 +520,7 @@ FOR LOOPS     → Use .map() / .reduce() / .filter() `[lint]`
 TERNARY       → PROHIBITED - use if/else or extract to function `[lint]`
 MULTI-LINE    → If, arrow functions
 FILE ORG      → Correct directories only
+IMPORTS       → Absolute #src/* only, no ./ or ../ (ESM + aliases) `[lint]`
 NAMING        → kebab-case files, action verbs, boolean prefixes (incl. Promise<boolean>)
 BOOL DEFAULTS → falsy; no `!== false` / `= true` flags; invert the name (shouldSkip*)
 CLASS/OBJECT  → Repo/DAL/Entity=class, UseCase/Handler=singleton

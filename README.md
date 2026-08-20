@@ -16,6 +16,7 @@ Each skill lives under `skills/<name>/` as a `SKILL.md` (with frontmatter descri
 | [plantuml-diagramming](skills/plantuml-diagramming/) | Translates textual descriptions into **PlantUML diagrams** — sequence, class, activity, use case, state, component, object, and flowchart diagrams for processes, architectures, and workflows. |
 | [writing-woodpecker-ci](skills/writing-woodpecker-ci/) | Migrates CI/CD pipelines **to Woodpecker CI** from GitHub Actions, GitLab CI, Jenkins, Semaphore, and Drone — translates pipeline steps, writes/debugs `.woodpecker.yml`, and sets up plugins, services, matrix builds, secrets, and when-conditions. |
 | [speed-dating](skills/speed-dating/) | Scaffolds and maintains projects using the **speed dating method**: one self-contained kebab-case folder per project with a short `CLAUDE.md`, numbered source-of-truth files (`00-`, `01-`), `YYYY-MM-DD` date-prefixed deliverables, and `_`-prefixed support folders, so any project can be dropped mid-work and picked up cold later. |
+| [writing-clean-shell](skills/writing-clean-shell/) | Organizes **shell scripts** (bash, zsh, sh, PowerShell) so anyone can read, update, and maintain them: every behavior becomes a function with a verb-first snake_case name, guard clauses come first, a steps-array orchestrator at the bottom doubles as the script's outline, and parameters get a `print_usage` help screen plus a consistent output vocabulary. Includes a cleanup command that reviews a script against every rule and fixes violations. |
 
 ## Installation
 

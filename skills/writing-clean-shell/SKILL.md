@@ -1,6 +1,20 @@
 ---
 name: writing-clean-shell
-description: Expert in organizing shell scripts so anyone can read, update, and maintain them. Use this skill whenever you write or create any shell script (bash, zsh, sh, or PowerShell, on Linux, macOS, or Windows), and whenever you edit, refactor, clean up, or reorganize an existing script, make a script readable or maintainable, add flags, options, or a help screen to a script, structure a main function or orchestrator, or split a monolithic script into functions - even if the user never mentions organization or clean code, and even for a quick one-off script. The skill also runs a full cleanup checklist (commands/cleanup.md) that checks every rule and fixes violations when the user asks to clean up, review, or validate a shell script. Covers function extraction, verb-first naming, guard clauses, steps-array orchestrators, print_usage help screens, and consistent output vocabulary. This is an organization skill, not a syntax skill: the principles apply to any shell on any platform.
+description: >-
+  Expert in organizing shell scripts so anyone can read, update, and maintain
+  them. Use this skill whenever you write or create any shell script (bash,
+  zsh, sh, or PowerShell, on Linux, macOS, or Windows), and whenever you edit,
+  refactor, clean up, or reorganize an existing script, make a script readable
+  or maintainable, add flags, options, or a help screen to a script, structure
+  a main function or orchestrator, or split a monolithic script into functions
+  - even if the user never mentions organization or clean code, and even for a
+  quick one-off script. The skill also runs a full cleanup checklist
+  (commands/cleanup.md) that checks every rule and fixes violations when the
+  user asks to clean up, review, or validate a shell script. Covers function
+  extraction, verb-first naming, guard clauses, steps-array orchestrators,
+  print_usage help screens, and consistent output vocabulary. This is an
+  organization skill, not a syntax skill: the principles apply to any shell on
+  any platform.
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash
 ---
 

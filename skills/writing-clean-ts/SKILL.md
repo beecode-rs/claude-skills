@@ -1,6 +1,20 @@
 ---
 name: writing-clean-ts
-description: Expert in TypeScript codebase patterns for backend and frontend. Helps with creating services, repositories, DALs, entities, controllers, handlers, use cases, React components, and UI screens. Make sure to use this skill whenever the user mentions TypeScript, Node.js, Express, TypeORM, React, React Router, React Native, Expo, creating an API endpoint, building a feature, implementing CRUD operations, or asks about codebase architecture - even if they don't explicitly say "clean architecture" or mention specific layers. Also covers project linting setup (ESLint, Prettier, json-sort-cli, lint scripts in package.json) - use when the user mentions lint, linting, eslint, prettier, formatting, json sorting, or scaffolding a new TypeScript project. Also covers ES module and import path setup (#src alias, absolute imports only, tsconfig paths, "type": "module") - use when the user mentions import paths, path aliases, ES modules, ESM, or relative imports. For testing, use the test-typescript skill.
+description: >-
+  Expert in TypeScript codebase patterns for backend and frontend. Helps with
+  creating services, repositories, DALs, entities, controllers, handlers, use
+  cases, React components, and UI screens. Make sure to use this skill
+  whenever the user mentions TypeScript, Node.js, Express, TypeORM, React,
+  React Router, React Native, Expo, creating an API endpoint, building a
+  feature, implementing CRUD operations, or asks about codebase architecture
+  - even if they don't explicitly say "clean architecture" or mention specific
+  layers. Also covers project linting setup (ESLint, Prettier, json-sort-cli,
+  lint scripts in package.json) - use when the user mentions lint, linting,
+  eslint, prettier, formatting, json sorting, or scaffolding a new TypeScript
+  project. Also covers ES module and import path setup (#src alias, absolute
+  imports only, tsconfig paths, "type": "module") - use when the user mentions
+  import paths, path aliases, ES modules, ESM, or relative imports. For
+  testing, use the test-typescript skill.
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash
 ---
 
@@ -53,8 +67,8 @@ Both translate external parameters into clean business layer calls:
 | **DAL** | Class | `src/dal/typeorm/` | [dal-layer.md](architecture/layer/dal-layer.md) |
 | **Entity** | Class | `src/dal/typeorm/entity/` | [entity-layer.md](architecture/layer/entity-layer.md) |
 | **UI Component** | Function Component | `src/ui-component/` | [ui-component-layer.md](architecture/layer/ui-component-layer.md) |
-| **Util** | Singleton object | `src/util/` | Files suffixed `-util` (exceptions: `config`, `constants`, `logger`, `error`) — see [naming-convention.md](style/naming-convention.md) |
-| **Lib** | Class or Singleton | `src/lib/` | No suffix — never `-service` — see [naming-convention.md](style/naming-convention.md) |
+| **Util** | Singleton object | `src/util/` | Files suffixed `-util` (exceptions: `config`, `constants`, `logger`, `error`) - see [naming-convention.md](style/naming-convention.md) |
+| **Lib** | Class or Singleton | `src/lib/` | No suffix - never `-service` - see [naming-convention.md](style/naming-convention.md) |
 
 ## Commands
 
@@ -188,15 +202,15 @@ src/
 │       └── preset-b.ts
 ```
 
-**Strategy Pattern (or any pattern), closed** (main entry file + multiple strategy services — one thing exposed, the rest private):
+**Strategy Pattern (or any pattern), closed** (main entry file + multiple strategy services - one thing exposed, the rest private):
 ```
 src/
 └── business/
     └── component/
         └── some-strategy/                      # ONE folder for the whole pattern, in the component layer
-            ├── _strategy-a.ts                  # Private — never imported outside the folder
+            ├── _strategy-a.ts                  # Private - never imported outside the folder
             ├── _strategy-b.ts                  # Private
-            ├── service.ts                      # Private implementation — switches between strategies
+            ├── service.ts                      # Private implementation - switches between strategies
             └── index.ts                        # The ONLY public entry point
 ```
 
@@ -278,8 +292,8 @@ When joining an existing project without this setup, add it first. Rewrite relat
 - **No ternary operators** `[lint]`: Ternary operators are prohibited. Use `if/else` or extract to a named function. See [style/code-style.md](style/code-style.md) for alternatives and scoping rules
 - **Multi-line code**: Always write multi-line code for accurate code coverage. If statements and arrow functions must span multiple lines with block syntax and explicit `return`. Single-line code hides branch coverage. See [style/code-style.md](style/code-style.md)
 - **No for loops** `[lint]`: FOR LOOPS ARE PROHIBITED. Use `.map()` for transformations, `.reduce()` for aggregations. See [style/code-style.md](style/code-style.md) for detailed examples.
-- **No `let`**: `let` is prohibited — every binding is `const`. Branch-dependent values come from an extracted function that returns per branch. See [style/code-style.md](style/code-style.md)
-- **Switch over if/else chains**: Branching on the same value across multiple cases uses a `switch`, never an if/else chain. The switch MUST be encapsulated in a well-named function where each case block returns (and `default` throws) — no `break`, no fallthrough. See [style/code-style.md](style/code-style.md)
+- **No `let`**: `let` is prohibited - every binding is `const`. Branch-dependent values come from an extracted function that returns per branch. See [style/code-style.md](style/code-style.md)
+- **Switch over if/else chains**: Branching on the same value across multiple cases uses a `switch`, never an if/else chain. The switch MUST be encapsulated in a well-named function where each case block returns (and `default` throws) - no `break`, no fallthrough. See [style/code-style.md](style/code-style.md)
 - **No comments allowed**: Code must be self-documenting. Use descriptive function and variable names instead. Function names should explain what the function does, variable names should explain what they contain. If you feel the need to add a comment, first check if the code can be refactored to be more readable (extract function, rename variable, simplify logic).
 - **TODO comments**: Only `// TODO` comments are allowed as temporary markers. Every TODO MUST include a clear removal condition. Example: `// TODO: Remove after implementing real authentication - currently using mock data`. All TODOs must be removed once the described condition is met.
 
@@ -299,7 +313,7 @@ When refactoring an existing codebase to follow this architecture, the goal is t
 
 ### Preserve Subfolder Groupings
 
-When a group of files already lives in a meaningful subfolder (e.g., `formatting-strategy/`, `transporting-strategy/`, `preset/`), move the **entire subfolder** to the target layer — don't flatten it.
+When a group of files already lives in a meaningful subfolder (e.g., `formatting-strategy/`, `transporting-strategy/`, `preset/`), move the **entire subfolder** to the target layer - don't flatten it.
 
 **Wrong (flattening loses grouping):**
 ```
@@ -318,11 +332,11 @@ After:  src/business/service/formatting-strategy/json.ts   ← Folder kept as-is
 | Code type | Target location | Notes |
 |-----------|----------------|-------|
 | Interfaces, types, enums | `src/business/model/` | If standalone, or keep in subfolder if tightly coupled to implementations |
-| Strategy implementations (open — callers pick one) | `src/business/service/<strategy-name>/` | Keep subfolder grouping |
+| Strategy implementations (open - callers pick one) | `src/business/service/<strategy-name>/` | Keep subfolder grouping |
 | Closed pattern implementation (main entry + private strategies) | `src/business/component/<name>/` | ONE folder for the whole bunch; only `index.ts` public, strategy files private |
 | Preconfigured entry points (presets) | `src/controller/preset/` | Keep subfolder grouping |
 | Utility functions | `src/util/` | Project-local stateless helpers |
-| Reusable infrastructure (no business logic, multi-microservice, destined for a shared package) | `src/lib/` | TypeORM DataSource, table mappers, RMQ connections — staging area before extraction to `@app/node-common/` etc. |
+| Reusable infrastructure (no business logic, multi-microservice, destined for a shared package) | `src/lib/` | TypeORM DataSource, table mappers, RMQ connections - staging area before extraction to `@app/node-common/` etc. |
 
 ### Refactoring Rules
 
@@ -416,7 +430,7 @@ export class ProjectRepo extends CommonRepo<ProjectEntity, ProjectModel> {
 - ❌ **Exporting instantiated class objects** like `export const x = new X()` → ✅ Export the class and use `new ClassName()` at the call site. For singletons, use `singletonPattern(() => new X())` from `@beecode/msh-util/singleton/pattern`
 - ❌ Skipping object params in business logic → ✅ ALWAYS use object params
 - ❌ Using factory functions for repos → ✅ Use `new ProjectRepo()`
-- ❌ Creating arbitrary **top-level** folders outside the allowed set (`src/parsers/`, `src/yaml/`, `src/helpers/`) → ✅ Use `src/business/service/` or `src/business/component/` (subfolders within those layers are encouraged for grouping). Note: `src/lib/` **is** an allowed top-level folder — see "File Location" below.
+- ❌ Creating arbitrary **top-level** folders outside the allowed set (`src/parsers/`, `src/yaml/`, `src/helpers/`) → ✅ Use `src/business/service/` or `src/business/component/` (subfolders within those layers are encouraged for grouping). Note: `src/lib/` **is** an allowed top-level folder - see "File Location" below.
 - ❌ Using the `-service` suffix outside `src/business/service/` (e.g., `src/util/lang-service.ts`, `src/lib/tray-service.ts`, `src/dal/history-service.ts`) → ✅ Match the layer's suffix: `-util` in `util/`, `-dal` in `dal/`, `-controller` for controller modules, and no suffix in `lib/` (see [naming-convention.md](style/naming-convention.md))
 - ❌ Exporting multiple standalone functions from one file → ✅ Group into singleton service object
 - ❌ Module-level private helper functions next to a service export (`const parseUser = ...` at root of file) → ✅ Fold them into the class as `protected _` methods called via `this`
@@ -460,18 +474,18 @@ export class ProjectRepo extends CommonRepo<ProjectEntity, ProjectModel> {
 - See [style/code-style.md](style/code-style.md) for detailed examples
 
 **NO INLINE ARROW FUNCTIONS** (CRITICAL):
-- ALL arrow functions must use block syntax with explicit `return` — no exceptions
+- ALL arrow functions must use block syntax with explicit `return` - no exceptions
 - `(x) => x + 1` is WRONG. Always write `(x) => { return x + 1 }`
-- This applies everywhere: `.map()`, `.reduce()`, `.filter()`, `.find()`, `Array.from()`, callbacks, event handlers — no inline expressions
+- This applies everywhere: `.map()`, `.reduce()`, `.filter()`, `.find()`, `Array.from()`, callbacks, event handlers - no inline expressions
 - Coverage tools cannot track branches on single-line arrow functions, producing false positives
 - See [style/code-style.md](style/code-style.md) for examples
 
-**NO `let` — SWITCH OVER IF/ELSE CHAINS (CRITICAL)**:
-- `let` is PROHIBITED — every binding is `const`
+**NO `let` - SWITCH OVER IF/ELSE CHAINS (CRITICAL)**:
+- `let` is PROHIBITED - every binding is `const`
 - Branch-dependent values are returned from an extracted function, never accumulated into a mutable variable
 - Branching on the same value across multiple cases uses a `switch`, never an if/else chain comparing one variable repeatedly
-- Every switch MUST be encapsulated in a well-named function: each case uses a `{}` block and `return`s (or `throw`s in `default`) — no `break`, no fallthrough
-- `default` MUST handle unsupported cases explicitly (throw or documented fallback) — never silent fallthrough
+- Every switch MUST be encapsulated in a well-named function: each case uses a `{}` block and `return`s (or `throw`s in `default`) - no `break`, no fallthrough
+- `default` MUST handle unsupported cases explicitly (throw or documented fallback) - never silent fallthrough
 - See [style/code-style.md](style/code-style.md) for wrong/right examples
 
 **NO COMMENTS** (CRITICAL):
@@ -481,9 +495,9 @@ export class ProjectRepo extends CommonRepo<ProjectEntity, ProjectModel> {
 - Only `// TODO: Remove when [condition]` is temporarily acceptable
 
 **BOOLEAN PREFIXES & FALSY DEFAULTS** (CRITICAL):
-- Every boolean — variable, property, parameter, return type, INCLUDING `Promise<boolean>` returns — must use a prefix: `is*`, `has*`, `can*`, `should*`, `will*`, `did*` (`isActive`, `hasConflict`, `shouldSkipHistory`, `isEngineInstalled(): Promise<boolean>`)
-- Optional boolean flags default to falsy. If the common case is "on", INVERT THE NAME instead of defaulting to true: `shouldSkipHistory?: boolean` checked as `if (!params.shouldSkipHistory)` — never `recordHistory !== false`
-- Never write inverted boolean checks: `if (x.flag !== false)` and `if (x.flag === true)` both hide a truthy default — FAIL
+- Every boolean - variable, property, parameter, return type, INCLUDING `Promise<boolean>` returns - must use a prefix: `is*`, `has*`, `can*`, `should*`, `will*`, `did*` (`isActive`, `hasConflict`, `shouldSkipHistory`, `isEngineInstalled(): Promise<boolean>`)
+- Optional boolean flags default to falsy. If the common case is "on", INVERT THE NAME instead of defaulting to true: `shouldSkipHistory?: boolean` checked as `if (!params.shouldSkipHistory)` - never `recordHistory !== false`
+- Never write inverted boolean checks: `if (x.flag !== false)` and `if (x.flag === true)` both hide a truthy default - FAIL
 - Exception: React props mirroring native HTML attributes (`disabled`, `checked`) keep the DOM name
 - Truthy defaults are acceptable only for persisted settings/business constants (pagination `page = 1`, `defaultSettings`)
 - See [style/naming-convention.md](style/naming-convention.md) and [style/code-style.md](style/code-style.md)
@@ -548,9 +562,9 @@ secretServiceSingleton().decryptSecret(secret)
 
 **CRITICAL: Module Export Pattern**:
 - **NEVER export multiple standalone functions** from a single file
-- **NEVER export a bare standalone function — even when it is the file's only export**. A single function is still wrapped in a singleton service object (e.g. `export const dateParserService = { parse(params) {...} }`, not `export function parseDate(...)`). The only function-shaped exports allowed are React/UI components.
+- **NEVER export a bare standalone function - even when it is the file's only export**. A single function is still wrapped in a singleton service object (e.g. `export const dateParserService = { parse(params) {...} }`, not `export function parseDate(...)`). The only function-shaped exports allowed are React/UI components.
 - **A service file exports exactly ONE element** (a class or a singleton object) and **never declares module-level (root-of-file) helper functions alongside it**. Any helper that serves the service becomes a member of the service itself: on a class, a `protected` method prefixed with a single underscore (`protected _parseUser(...)`) accessed via `this`; on a singleton object, an underscore-prefixed property that is never exposed to consumers
-- **The presence of helpers signals the class pattern** — methods calling each other via `this` (see the Class vs Object decision guide)
+- **The presence of helpers signals the class pattern** - methods calling each other via `this` (see the Class vs Object decision guide)
 - **ALWAYS group related functions** into a singleton service object
 - **ALWAYS use object params** for all methods in service objects
 - **NEVER use barrel exports** (re-exporting from index.ts) for business logic
@@ -583,6 +597,6 @@ export const regexParserService = {
 - **Data access MUST be in `src/dal/`** (typeorm/)
 - **HTTP handlers MUST be in `src/controller/express/`**
 - **Utility functions MAY be in `src/util/`** (project-local pure helpers; prefer services for complex logic)
-- **Reusable infrastructure MAY be in `src/lib/`** — code with **no business logic** that is **reusable across multiple microservices**, kept as a staging area **until it is extracted** into a shared common package (`@app/node-common/`, `@app/common/`) or an external library. Examples: TypeORM `DataSource` singleton, table-name mapper, RMQ connection singletons
+- **Reusable infrastructure MAY be in `src/lib/`** - code with **no business logic** that is **reusable across multiple microservices**, kept as a staging area **until it is extracted** into a shared common package (`@app/node-common/`, `@app/common/`) or an external library. Examples: TypeORM `DataSource` singleton, table-name mapper, RMQ connection singletons
 - **NEVER create arbitrary top-level folders** outside the allowed set. Allowed top-level folders under `src/` are: `app-boot/`, `controller/`, `business/`, `dal/`, `ui-component/`, `util/`, `lib/` (so no `src/yaml/`, `src/parsers/`, `src/helpers/`)
 - **Subfolders within layers are encouraged** for grouping related implementations (e.g., `src/business/service/formatting-strategy/json.ts`)

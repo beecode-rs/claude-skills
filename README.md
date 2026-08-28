@@ -4,6 +4,19 @@ A collection of shared [Claude Code Skills](https://docs.claude.com/en/docs/clau
 
 Each skill lives under `skills/<name>/` as a `SKILL.md` (with frontmatter describing when it activates) plus supporting references, templates, and scripts.
 
+Standalone shell tools live under `scripts/<name>/`, each with its own README and install instructions.
+
+## Table of contents
+
+<!-- toc -->
+
+- [Available skills](#available-skills)
+  - [Skill installation](#skill-installation)
+- [Available scripts](#available-scripts)
+- [License](#license)
+
+<!-- tocstop -->
+
 ## Available skills
 
 | Skill | What it does |
@@ -20,7 +33,7 @@ Each skill lives under `skills/<name>/` as a `SKILL.md` (with frontmatter descri
 | [ai-documentation](skills/ai-documentation/) | Investigates a codebase and writes **business documentation for non-developers** (PMs, founders, support, new team members): how the system behaves, what flows through it, and what happens when things fail. Produces a hub-and-spoke suite in `resource/ai-doc/` with a navigation README, topic files whose prose stays free of code identifiers, Mermaid flow diagrams, and a per-file "Where this lives in the code" anchor table for developers and AI agents. Refreshes an existing suite in place instead of rewriting it. |
 | [orchestrating-ts-agents](skills/orchestrating-ts-agents/) | Plans and **runs multi-agent work** in a TypeScript / pnpm monorepo: routes each piece to the right specialist (`ts-implementer`, `ts-tester`, `ts-reviewer`, `code-explorer`, `Plan`, `general-purpose`), picks a pipeline or fan-out shape from the data dependencies, writes self-contained agent prompts with exact targets and carried-forward context, spawns the agents, then triages their reports and relays one coherent result. Use it before hand-rolling a large TS task (feature + tests + review, multi-package refactor, migration, audit) in the main thread. |
 
-## Installation
+### Skill installation
 
 Install a skill with `npx skills add` (no global install needed).
 
@@ -43,6 +56,13 @@ npx skills update
 ```
 
 Claude auto-discovers skills on startup and activates them based on the `description` in each `SKILL.md` — you don't need to configure anything else.
+
+
+## Available scripts
+
+| Script | What it does |
+|--------|--------------|
+| [ralph](scripts/ralph/) | Runs Claude Code **autonomously** in a bash loop against a `*.TASK.md` file (produced by the planning-stories skill): each iteration spawns a headless `claude` session that implements exactly one task, verifies it with the project's test and typecheck commands, marks it `[x]` or `[!]`, and appends learnings to a progress file for later iterations. Streams agent activity to the terminal, logs every iteration to disk, and exits on completion, stall, or safety limits. |
 
 ## License
 

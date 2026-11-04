@@ -8,7 +8,11 @@ When user says: "cleanup this code", "review this file", "check code quality", o
 
 ## Process
 
-Lint gate, before any checklist section: if the project has no `lint` / `lint-fix` scripts (or no ESLint config), set linting up first following `references/linting.md` ("Setting Up Linting"), then run. Run `lint-fix`, then `lint`, and use the real script output as input to this review. Sections marked `[lint]` below are verified ONLY by that output: do not scan the code by eye for them and do not ask an AI agent or AI reviewer to judge them - fix what the report flags (manually when not auto-fixable, following the fix guidance in each section) and re-run until `lint` passes. The unmarked sections are the manual review work the scripts cannot replace.
+Build gate, before the lint gate: run the project's build (`pnpm build` / `tsc`). A cleanup verdict on code that does not compile is meaningless, so know this first.
+
+Lint gate, before any checklist section: if the project has no `lint` / `lint-fix` scripts (or no ESLint config), complete the scaffold in `references/architecture/project-scaffold.md` first (it covers the `#src` alias, tsconfig, scripts, configs, and the pinned toolchain versions - `typescript@~6.0.0` and `eslint@^9`, not the newest majors), then run. Run `lint-fix`, then `lint`, and use the real script output as input to this review. Sections marked `[lint]` below are verified ONLY by that output: do not scan the code by eye for them and do not ask an AI agent or AI reviewer to judge them - fix what the report flags (manually when not auto-fixable, following the fix guidance in each section) and re-run until `lint` passes. The unmarked sections are the manual review work the scripts cannot replace.
+
+Runtime gate, after the checklist: when the cleanup touched boot, DAL, entity, or config code, boot the app (`pnpm start` / `pnpm dev`) and exercise one flow end to end before reporting done. Two classes of bug pass `tsc` and lint and only surface at boot: a wrong `#src` runtime mapping (`./dist/*.js` instead of `./dist/*` doubles the extension into `ERR_MODULE_NOT_FOUND`), and missing explicit TypeORM column types (`Data type "Object" ... is not supported` for nullable unions; `tsx` also emits no decorator metadata in dev).
 
 **Expo projects:** if the package is an Expo app (`expo` / `expo-router` dependency, `"main": "expo-router/entry"`, or an `expo` key in `app.json` / `app.config.ts`), do not report the framework-mandated Expo patterns: files in `src/app/` without layer suffixes, with `[param]`/`(group)`/`+name`/`_layout` names, or exporting a default component; `index.tsx` in `src/app/`; `src/app/` as a top-level folder (never suggest renaming it to `app-boot/`); `@/` imports, or a missing `"type": "module"` / `imports` field / `#src` paths; platform-variant files (`x.web.ts` next to `x.ts`). Still report relative imports, business logic or routing hooks inside screens, non-route code placed in `src/app/`, and route files that do more than read router params and pass props.
 
@@ -21,6 +25,8 @@ When the scope is the whole source tree ("check all src files"), find candidates
 ## Checklist
 
 ### 1. Comments Check
+
+Rule source: `references/core-rules.md` ("CRITICAL: No Comments") and `references/style/code-style.md` ("No Comments Rule").
 
 **Rule**: Zero tolerance for comments in code.
 
@@ -39,6 +45,8 @@ When the scope is the whole source tree ("check all src files"), find candidates
 
 ### 2. For Loops Check `[lint]`
 
+Rule source: `references/style/code-style.md` ("CRITICAL: No For Loops").
+
 **Rule**: FOR LOOPS ARE PROHIBITED. Enforced by lint (`no-loops/no-loops`, not auto-fixable) - when lint reports a loop, rewrite it with the functional alternative.
 
 | Pattern | Status | Alternative |
@@ -56,6 +64,8 @@ When the scope is the whole source tree ("check all src files"), find candidates
 ---
 
 ### 3. Multi-Line Formatting Check
+
+Rule source: `references/style/code-style.md` ("Multi-Line Code Requirement", "No Ternary", "Arrow Functions").
 
 **Rule**: Multiple logical branches must span multiple lines for accurate code coverage.
 
@@ -121,6 +131,8 @@ const getValue = (x) => {
 
 ### 4. File Organization Check
 
+Rule source: `references/architecture/file-organization-pattern.md` (the directory tree and "Where to Place Code"); the assembled target shape: `references/architecture/example-app.md`.
+
 **Rule**: Files must be in correct directories.
 
 | Code Type | Correct Location |
@@ -151,6 +163,8 @@ const getValue = (x) => {
 ---
 
 ### 5. Naming Convention Check
+
+Rule source: `references/style/naming-convention.md` (file/export/method/boolean/timestamp naming) and `references/style/timestamp-handling.md`.
 
 #### File Naming
 
@@ -226,6 +240,8 @@ Only `is*` and `has*` are used. `can*`, `should*`, `will*`, `did*` ❌ FAIL (ren
 
 ### 6. Class vs Object Pattern Check
 
+Rule source: `references/architecture/class-vs-object.md` (decision tree, "Helper Functions Mean Class", "No Constructor Dependency Injection").
+
 **Mandatory Patterns**:
 
 | Layer | Must Use | Pattern |
@@ -258,6 +274,8 @@ Only `is*` and `has*` are used. `can*`, `should*`, `will*`, `did*` ❌ FAIL (ren
 
 ### 7. Exported Instances Check
 
+Rule source: `references/core-rules.md` ("NO EXPORTED INSTANCES") and `references/architecture/class-vs-object.md` ("Singleton Pattern").
+
 **Rule**: NEVER export instantiated class objects.
 
 ```typescript
@@ -273,13 +291,15 @@ export class SecretService { ... }
 // Usage: new SecretService().decrypt()
 
 // ✅ CORRECT - use singletonPattern if needed
-import { singletonPattern } from '@beecode/msh-util/singleton/pattern'
+import { singletonPattern } from '@beecode/msh-util'
 export const secretServiceSingleton = singletonPattern(() => new SecretService())
 ```
 
 ---
 
 ### 8. Object Params Pattern Check
+
+Rule source: `references/style/object-params-pattern.md` (rules by layer, destructure-first-line, defaults in signature).
 
 **Rule**: Business logic layers MUST use object params for ALL functions.
 
@@ -315,6 +335,8 @@ findOneById(params: { id: string }): Promise<Model>
 
 ### 9. Export Pattern Check
 
+Rule source: `references/architecture/file-organization-pattern.md` ("Module Export Pattern") and `references/core-rules.md` ("CRITICAL: Module Export Pattern").
+
 **Rule**: ONE export per file (grouped into service object). No bare function exports — even a single function is wrapped in a singleton service object.
 
 ```typescript
@@ -342,6 +364,8 @@ export const dateParserService = {
 ---
 
 ### 10. Root-level Helper Functions Check
+
+Rule source: `references/architecture/class-vs-object.md` ("Helper Functions Mean Class") and `references/style/function-size.md` ("The Splitting Move").
 
 **Rule**: A service file must export exactly one element (a class or a singleton object) and must NOT declare module-level (root-of-file) helper functions alongside it. Any helper that serves the service becomes a member of the service itself.
 
@@ -388,6 +412,8 @@ export class UserService {
 
 ### 11. Barrel Export Check
 
+Rule source: `references/architecture/file-organization-pattern.md` ("Barrel Exports (index.ts)").
+
 **Rule**: NO index.ts files that only re-export.
 
 ```typescript
@@ -409,6 +435,8 @@ import { regexService } from '#src/business/service/regex-service.js'
 ---
 
 ### 12. Exhaustive Enum Switch Check
+
+Rule source: `references/style/function-guidelines.md` ("Exhaustive Enum Switches").
 
 **Rule**: A switch whose cases cover every member of an enum (or closed union) MUST throw `typeUtil.exhaustiveError(message, value)` from `@beecode/msh-util` in `default`. Check every switch in the scope, including factories (enum → strategy) and components (enum → JSX).
 
@@ -437,6 +465,8 @@ switch (status) {
 ---
 
 ### 13. `let` & If/Else Chain Check
+
+Rule source: `references/style/code-style.md` ("CRITICAL: No `let` - const Only, Switch Over If/Else Chains").
 
 **Rule**: `let` is prohibited (`const` only). Branching on the same value across multiple cases is a `switch`, encapsulated in a function.
 
@@ -490,6 +520,8 @@ const appDataDir = resolveAppDataDir({ platform: osUtil.resolvePlatform() })
 
 ### 14. Import Paths Check `[lint]`
 
+Rule source: `references/core-rules.md` ("Imports: ES Modules & Path Aliases") and `references/architecture/project-scaffold.md` (the exact package.json/tsconfig snippets).
+
 **Rule**: Internal imports are absolute through the `#src/*` alias only. Relative imports (`./`, `../`) are prohibited; the project runs ES modules with the alias configured (`"type": "module"` + `"imports"` in package.json, `paths` in tsconfig).
 
 | Pattern | Status | Fix |
@@ -498,7 +530,7 @@ const appDataDir = resolveAppDataDir({ platform: osUtil.resolvePlatform() })
 | `import { x } from '../business/service/foo-service'` | ❌ FAIL | Rewrite as `#src/business/service/foo-service` |
 | `import { x } from './foo-service'` (sibling) | ❌ FAIL | Rewrite as the full `#src/<layer>/.../foo-service` path |
 | package.json missing `"type": "module"` | ❌ FAIL | Add it before writing any code |
-| package.json missing `"imports": { "#src/*": "./dist/*.js" }` | ❌ FAIL | Add it so `#src/*` resolves at runtime in plain Node (subpath import) |
+| package.json missing `"imports": { "#src/*": "./dist/*" }` | ❌ FAIL | Add it so `#src/*` resolves at runtime in plain Node (subpath import). The target is `./dist/*`, NOT `./dist/*.js`: specifiers already carry `.js` under NodeNext, so a `.js` suffix in the mapping doubles it and the built app crashes with `ERR_MODULE_NOT_FOUND` |
 | tsconfig missing `"paths": { "#src": ["./src"], "#src/*": ["./src/*"] }` | ❌ FAIL | Configure both entries; bundlers additionally need `vite-tsconfig-paths` or `resolve.alias` |
 
 **Note**: Private files (leading `_`) are still imported by absolute `#src` path from within their folder; `@app/*` monorepo shared-package imports are also ✅ PASS.
@@ -506,6 +538,8 @@ const appDataDir = resolveAppDataDir({ platform: osUtil.resolvePlatform() })
 ---
 
 ### 15. Constant, Config & Platform Check
+
+Rule source: `references/architecture/constant-config-pattern.md`.
 
 **Rule**: one `constant` object in `util/constant.ts`, env read only in `util/config.ts` (immutable after startup), runtime changes in a util memory module seeded from config, `process.platform` only in `osUtil.resolvePlatform()`.
 
@@ -528,6 +562,8 @@ const appDataDir = resolveAppDataDir({ platform: osUtil.resolvePlatform() })
 
 ### 16. Enum & Type Check
 
+Rule source: `references/style/naming-convention.md` ("Enum Naming", "Type Naming") and `references/architecture/model-vs-entity.md` ("What a Model File May Contain").
+
 | Pattern | Status | Fix |
 |---------|--------|-----|
 | Enum declared in a model file or in `model/` | ❌ FAIL | Own file in the sibling `business/enum/` folder |
@@ -544,6 +580,8 @@ const appDataDir = resolveAppDataDir({ platform: osUtil.resolvePlatform() })
 
 ### 17. Naming Meaning Check
 
+Rule source: `references/style/naming-convention.md` ("Naming Principles").
+
 | Pattern | Status | Fix |
 |---------|--------|-----|
 | Name describes the current caller, not the thing (`SessionSoundMapper` for a sound-name mapper) | ❌ FAIL | `SoundNameMapper` |
@@ -554,6 +592,8 @@ const appDataDir = resolveAppDataDir({ platform: osUtil.resolvePlatform() })
 ---
 
 ### 18. Layer Placement Check
+
+Rule source: `references/architecture/file-organization-pattern.md` ("Placement Decision Tree") plus the layer file for the layer under review (`service-layer.md`, `repository-layer.md`, `dal-layer.md`, `controller-layer.md`, `app-boot-layer.md`).
 
 | Pattern | Status | Fix |
 |---------|--------|-----|
@@ -573,6 +613,8 @@ const appDataDir = resolveAppDataDir({ platform: osUtil.resolvePlatform() })
 ---
 
 ### 19. Repo & DAL Check
+
+Rule source: `references/architecture/repository-layer.md` ("The Repo Knows Nothing About Storage") and `references/architecture/dal-layer.md`; worked example: `references/architecture/example-app.md` (repo and DAL sections).
 
 | Pattern | Status | Fix |
 |---------|--------|-----|

@@ -35,6 +35,8 @@ src/app-boot/
 - The flow file is named for **what the app is** (`desktop-app.ts`, `api-server.ts`, `worker.ts`), never after the project (`usage-pulse-app-flow.ts`)
 - The process entry point (`src/index.ts`, `src/main/index.ts`) only starts the flow
 
+A complete standalone worked example (AppFlow, database + express life cycles, `AppStarter` entry point) is `references/architecture/example-app.md`.
+
 ## Life Cycle Shape
 
 ```typescript

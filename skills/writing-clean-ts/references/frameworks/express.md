@@ -75,6 +75,61 @@ export const getProjectsAll = {
 }
 ```
 
+## Standalone Project Variant
+
+The templates below assume a monorepo with shared packages (`@app/common`,
+`@app/node-common`) providing `HttpUtil`, `validationUtil`, and `swaggerUtil`.
+A standalone single-package project has none of those, and inventing lookalike
+utilities (or hand-rolling `res` handling in router factories) is how
+non-conforming controllers get born. In a standalone project:
+
+- Create `src/util/validation-util.ts` first (one wrapper so every endpoint
+  produces the same validation error shape) and call it directly:
+
+```typescript
+// src/util/validation-util.ts
+import { type z } from 'zod'
+
+export const validationUtil = {
+  parse<S extends z.ZodType>(data: unknown, schema: S): z.infer<S> {
+    return schema.parse(data)
+  },
+}
+```
+
+- Endpoint files export the same camelCase `{ handler }` object, but the
+  handler keeps the plain Express signature and responds with
+  `res.status(...).json(...)`. Express 5 forwards rejected async handler
+  promises to the error middleware, so no try/catch:
+
+```typescript
+// src/controller/express/project/post-project.ts
+import { type Request, type Response } from 'express'
+
+import { projectService } from '#src/business/service/project-service.js'
+import { validationUtil } from '#src/util/validation-util.js'
+
+export const postProject = {
+  handler: async (req: Request, res: Response): Promise<void> => {
+    const body = validationUtil.parse(req.body, reqBodySchema)
+    const project = await projectService.createProject(body)
+    res.status(201).json(project)
+  },
+}
+```
+
+- One `src/controller/express/router.ts` exports
+  `expressRouter = { registerRoutes(): Router }` wiring every route to its
+  `.handler`; services are imported by the endpoint files, never passed into
+  the router as parameters.
+- Express app assembly (json body parser, router, not-found and error
+  middleware) lives in the app-boot express life cycle, not in the controller
+  layer; the process entry point just starts the flow.
+- Swagger schemas are omitted until a swagger util exists.
+
+The complete worked form of this variant (router, shared schemas, middleware,
+life cycle, entry point) is `references/architecture/example-app.md`.
+
 ## Express Controller Layer
 
 Express controllers handle REST API endpoints with Zod validation and structured error handling. Part of the **Controller Layer (CL)** for HTTP interfaces.

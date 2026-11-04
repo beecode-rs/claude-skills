@@ -192,7 +192,7 @@ The class and its accessor live in **one** `<name>-singleton.ts` file. The class
 
 ```typescript
 // src/business/repo/settings-repo-singleton.ts
-import { singletonPattern } from '@beecode/msh-util/singleton/pattern'
+import { singletonPattern } from '@beecode/msh-util'
 
 export class _SettingsRepo {
   protected readonly _dal: ISettingsDal = new SettingsDal()
@@ -207,7 +207,7 @@ export const settingsRepoSingleton = singletonPattern(() => {
 settingsRepoSingleton().fetch()
 ```
 
-**CRITICAL: Never export instantiated objects directly.** If you need singleton behavior, ALWAYS use `singletonPattern` from `@beecode/msh-util/singleton/pattern` - never `export const x = new X()`.
+**CRITICAL: Never export instantiated objects directly.** If you need singleton behavior, ALWAYS use `singletonPattern` from `@beecode/msh-util` (main entry; confirm the installed version's exact import paths with the `implementing-msh` skill) - never `export const x = new X()`.
 
 #### Handling Async Initialization
 

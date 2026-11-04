@@ -182,10 +182,12 @@ Every project scaffolded or touched by this skill MUST run ES modules with the `
 {
   "type": "module",
   "imports": {
-    "#src/*": "./dist/*.js"
+    "#src/*": "./dist/*"
   }
 }
 ```
+
+The mapping target is `./dist/*`, deliberately without a `.js` suffix: with `NodeNext`, every internal import specifier already carries `.js` (`#src/business/service/foo-service.js`), and the mapping appends its own suffix to whatever the wildcard captured - `./dist/*.js` therefore produces `foo-service.js.js` and the built app dies with `ERR_MODULE_NOT_FOUND`. tsc does not catch this (tsconfig `paths` resolves the specifier to the `.ts` source); only a real runtime boot does. The complete setup procedure, with toolchain version pins, lives in `references/architecture/project-scaffold.md`.
 
 **tsconfig.json** (Node.js backend):
 ```json
@@ -207,7 +209,7 @@ React/Vite projects use `"module": "ESNext"` with `"moduleResolution": "Bundler"
 
 Where the code runs:
 - Node backend, dev: run with `tsx` (it honors tsconfig paths; `#src` needs no extra setup)
-- Node backend, build: `tsc`, then `tsc-alias -p tsconfig.build.json` only if you want rewritten relative paths in `dist` (the package.json `imports` mapping to `./dist/*.js` already resolves `#src/*` on its own)
+- Node backend, build: `tsc`, then `tsc-alias -p tsconfig.build.json` only if you want rewritten relative paths in `dist` (the package.json `imports` mapping to `./dist/*` already resolves `#src/*` on its own)
 - Bundlers (Vite, webpack): `vite-tsconfig-paths` plugin or an equivalent `resolve.alias` entry mapping `#src` to `./src`
 
 When starting an app from scratch, the initial scaffold MUST also add the lint scripts to `package.json` (`lint`, `lint-fix`) together with the ESLint config, `.prettierrc`, and the lint dev dependencies - see the Linting section below. Set all of this up before writing any feature code.
@@ -240,7 +242,7 @@ When joining an existing project without this setup, add it first. Rewrite relat
 
 - After writing or changing code, ALWAYS run the project's `lint-fix` script, then `lint` to verify it passes clean
 - NEVER hand-edit code to fix something `eslint --fix`, `prettier --write`, or `jsonsort` can fix
-- If the project has no lint setup (no `lint` / `lint-fix` scripts or no ESLint config), set it up FIRST via the "Setting Up Linting" procedure in the Linting reference, then run it - existing projects without setup get the same treatment as new ones, and the missing scripts are never replaced by agent review
+- If the project has no lint setup (no `lint` / `lint-fix` scripts or no ESLint config), set it up FIRST via the full scaffold procedure in `references/architecture/project-scaffold.md` (alias, tsconfig, scripts, configs, and the pinned toolchain versions: `typescript@~6.0.0` and `eslint@^9` are the supported line, not the newest majors), then run it - existing projects without setup get the same treatment as new ones, and the missing scripts are never replaced by agent review
 - When starting an app from scratch, ALWAYS add the lint scripts to its `package.json` (`lint`, `lint-fix`) and generate the ESLint config (Node.js backend or React frontend flavor) from the extracted rule inventory, using the newest tool versions - this is part of the initial scaffold, before any feature code (follow the "Setting Up Linting" procedure in the Linting reference)
 
 ## Refactoring Existing Code
@@ -338,7 +340,7 @@ export class ProjectRepo extends CommonRepo<ProjectEntity, ProjectModel> {
 - ❌ Using classes for controllers → ✅ Always use singleton objects
 - ❌ Using classes (or `singletonPattern`) for use cases → ✅ Always stateless plain objects
 - ❌ Keeping a single-call use-case that neither gives the controller a stable domain-named entry point nor hides the implementing layer → ✅ Thin use-cases are fine for those two jobs; anything else is a wrapper, so call the business function directly from the controller
-- ❌ **Exporting instantiated class objects** like `export const x = new X()` → ✅ Export the class and use `new ClassName()` at the call site. For singletons, use `singletonPattern(() => new X())` from `@beecode/msh-util/singleton/pattern`
+- ❌ **Exporting instantiated class objects** like `export const x = new X()` → ✅ Export the class and use `new ClassName()` at the call site. For singletons, use `singletonPattern(() => new X())` from `@beecode/msh-util` (confirm the exact import path of the installed version with the `implementing-msh` skill)
 - ❌ Skipping object params in business logic → ✅ ALWAYS use object params
 - ❌ Using factory functions for repos → ✅ Use `new ProjectRepo()`
 - ❌ Creating arbitrary **top-level** folders outside the allowed set (`src/parsers/`, `src/yaml/`, `src/helpers/`) → ✅ Use `src/business/service/` or `src/business/component/` (subfolders within those layers are encouraged for grouping). Allowed top-level folders: `app-boot/`, `controller/`, `business/`, `dal/`, `ui-component/`, `util/`, `lib/`, `__internal__/`, `asset/`, `__tests__/` - see "File Location" below.
@@ -457,7 +459,7 @@ const decrypted = new SecretService().decryptSecret(secret)
 
 ```typescript
 // src/business/repo/settings-repo-singleton.ts
-import { singletonPattern } from '@beecode/msh-util/singleton/pattern'
+import { singletonPattern } from '@beecode/msh-util'
 
 export class _SettingsRepo { ... }
 

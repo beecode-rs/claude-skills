@@ -249,7 +249,7 @@ export const rmqDataProcessing = {
 ```typescript
 // src/controller/rmq/router-singleton.ts
 import { type Channel } from 'amqplib'
-import { singletonPattern } from '@beecode/msh-util/singleton/pattern'
+import { singletonPattern } from '@beecode/msh-util'
 
 import { rmqDataProcessing } from '#src/controller/rmq/data-processing'
 import { rmqProjectCreated } from '#src/controller/rmq/project-created'

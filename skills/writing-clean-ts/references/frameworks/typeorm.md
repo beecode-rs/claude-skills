@@ -75,6 +75,43 @@ The TypeORM DAL encapsulates TypeORM-specific data access code, isolating it fro
 
 ### Structure
 
+#### Explicit Column Types Are Mandatory
+
+Every plain `@Column` (and `@Column`-family decorator where you control the
+options) must set an explicit `type`, for two independent reasons observed in
+real projects:
+
+1. **Nullable unions reflect as `Object`**: for `parentItemId!: number | null`,
+   `emitDecoratorMetadata` records the design type `Object`, and TypeORM's
+   schema sync throws `Data type "Object" in "XyzEntity.parentItemId" is not
+   supported by "better-sqlite3" database.` (or silently picks a wrong type on
+   other drivers). An explicit `type: 'integer'` removes reflection from the
+   equation.
+2. **`tsx` emits no decorator metadata at all**: dev runs through `tsx`
+   (esbuild) do not emit `design:type`, so EVERY plain `@Column` fails under
+   `pnpm dev` with `ColumnTypeUndefinedError ... Make sure you have turned on
+   an "emitDecoratorMetadata"` even though the compiled `tsc` build works.
+   Explicit types make entities runtime-identical under `tsc` and `tsx`.
+
+```typescript
+// ❌ WRONG - relies on reflection, breaks under tsx and for nullable unions
+@Column()
+title!: string
+
+@Column({ name: 'parent_item_id', nullable: true, unique: true })
+parentItemId!: number | null
+
+// ✅ CORRECT - explicit type, works compiled and under tsx
+@Column({ type: 'varchar' })
+title!: string
+
+@Column({ name: 'parent_item_id', nullable: true, type: 'integer', unique: true })
+parentItemId!: number | null
+```
+
+Also: `import 'reflect-metadata'` before any entity is loaded (the process
+entry point and the DataSource module are the reliable spots).
+
 #### Basic DAL Implementation
 
 ```typescript
@@ -425,7 +462,7 @@ await this._repo.createQueryBuilder('alias').getMany()
 ```typescript
 // src/lib/typeorm/data-source-singleton.ts
 import { DataSource } from 'typeorm'
-import { singletonPattern } from '@beecode/msh-util/singleton/pattern'
+import { singletonPattern } from '@beecode/msh-util'
 
 import { config } from '#src/util/config'
 
@@ -593,13 +630,13 @@ export class ProjectEntity<PARSER_TYPE extends ParserType = any>
     this.parserPayload = parserPayload as ProjectParserPayload<PARSER_TYPE>
   }
 
-  @Column()
+  @Column({ type: 'varchar' })
   name!: string
 
-  @Column()
+  @Column({ type: 'varchar' })
   ownerId!: string
 
-  @Column()
+  @Column({ type: 'varchar' })
   sourceUrl!: string
 
   @Column({ enum: ProjectSourceType, type: 'enum' })
@@ -914,6 +951,7 @@ constructor(params?: IProjectEntity) {
 
 - Store only necessary properties in entities
 - Compute derived properties in domain models
+- Give every plain `@Column` an explicit `type` (nullable unions reflect as `Object` and throw at schema sync; `tsx` emits no decorator metadata in dev)
 - Use proper TypeORM decorators for relationships
 - Keep entities focused on data structure
 - Use entities only in DAL layer (converted to models for Repository)

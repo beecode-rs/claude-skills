@@ -179,7 +179,25 @@ Mandatory precondition for ANY code task - writing a feature, reviewing, or "cle
 5. Install the dev dependencies listed in the rule inventory below.
 6. Run `lint-fix` once over the codebase and verify `lint` passes clean before finishing.
 
-Use the newest released versions of the tools and plugins when generating a config. The rule set is what stays fixed; the tool versions are always current at generation time (known-good floors: ESLint 9 flat config, typescript-eslint 8, Prettier 3, json-sort-cli 4). If a rule was renamed or folded into a newer preset, use its newest equivalent with the same intent, never silently drop it.
+Use the newest released version of the tools and plugins **within the supported major line** when generating a config. The rule set is what stays fixed; the versions below are the verified line, learned from real setup failures:
+
+| Tool | Install | Why not newer |
+|---|---|---|
+| `eslint`, `@eslint/js` | `^9` | `eslint-plugin-import` 2.x crashes on ESLint 10 (`sourceCode.getTokenOrCommentAfter is not a function`) - ESLint 9 is the line the plugin set supports |
+| `typescript` | `~6.0.0` | typescript-eslint 8.x hard-errors on TypeScript 7 (`typescript-eslint does not support TS 7.0`); TS 6 is the JS-compiler line the lint toolchain supports |
+| `typescript-eslint` | `^8` | the major whose rule set this reference documents |
+| `prettier` / `json-sort-cli` | `^3` / `^4` | current majors, no known conflicts |
+
+So the dev-dependency install for a Node backend is:
+
+```sh
+pnpm add -D typescript@~6.0.0 @eslint/js@^9 eslint@^9 typescript-eslint@^8 \
+  eslint-plugin-import eslint-plugin-no-loops eslint-plugin-no-only-tests \
+  eslint-plugin-no-relative-import-paths eslint-plugin-sort-keys-fix \
+  globals prettier json-sort-cli
+```
+
+If a rule was renamed or folded into a newer preset, use its newest equivalent with the same intent, never silently drop it. Two setup-time quirks worth knowing: `jsonsort` rewrites JSON files with tab indentation (that is its output style, not a formatting bug), and native modules such as `better-sqlite3` may need `pnpm rebuild better-sqlite3` after a Node version change (`Could not locate the bindings file` at boot).
 
 ### Workflow During Development
 

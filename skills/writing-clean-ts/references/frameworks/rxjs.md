@@ -216,7 +216,7 @@ export const appEventBusSingleton = singletonPattern(() => {
 
 ```typescript
 // src/controller/rxjs-bus/router-singleton.ts
-import { singletonPattern } from '@beecode/msh-util/singleton/pattern'
+import { singletonPattern } from '@beecode/msh-util'
 
 import { rxjsBusAuditLog } from '#src/controller/rxjs-bus/audit-log'
 import { rxjsBusCacheInvalidation } from '#src/controller/rxjs-bus/cache-invalidation'

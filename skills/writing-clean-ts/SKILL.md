@@ -7,10 +7,14 @@ description: >-
   skill whenever the user mentions TypeScript, Node.js, Express, TypeORM,
   Electron, React, React Router, React Native, Expo, creating an API endpoint,
   building a feature, CRUD operations, or codebase architecture - even if they
-  don't say "clean architecture". Also use it to refactor or clean up
-  existing TypeScript (moving code between layers, renaming, splitting big
-  files, constants/config/env, enums, singletons, reviewing against these
-  conventions), for linting setup (ESLint, Prettier, json-sort-cli, lint
+  don't say "clean architecture". Also use it when creating a new project or
+  package from scratch (scaffolding, folder structure, lint setup), when
+  extending or refactoring existing TypeScript (moving code between layers,
+  renaming, splitting big files, constants/config/env, enums, singletons),
+  when reviewing it against these conventions, and when cleaning it up - the
+  same rule set governs creating, editing, extending, and cleanup, so code
+  written with this skill must come out of a cleanup pass with nothing to fix.
+  Also use it for linting setup (ESLint, Prettier, json-sort-cli, lint
   scripts), and for ES module / import path setup (#src alias, absolute
   imports, tsconfig paths, "type": "module"). For tests, use the
   contract-testing-ts skill.
@@ -27,10 +31,11 @@ Use it when creating or moving services, repositories, DALs, entities, models, e
 
 1. **Detect the stack**: read the target package's `package.json` (in a monorepo, the package being worked on, not the root) and check for the files in the framework table below.
 2. **Load references**: read `references/core-rules.md`, then only the rows below that match the stack and the task. Read each loaded file start to finish; never set range limits.
-3. **Check the project setup** before writing feature code: ES modules with the `#src` alias and the `lint` / `lint-fix` scripts with their configs. If any of it is missing, set it up first (`references/linting.md`) - no exception for small, new, or existing projects.
+3. **Check the project setup** before writing feature code: ES modules with the `#src` alias and the `lint` / `lint-fix` scripts with their configs. If any of it is missing, complete the scaffold in `references/architecture/project-scaffold.md` first - no exception for small, new, or existing projects. A brand-new project reads that file plus `references/architecture/example-app.md` (the assembled, verified shape) before creating anything.
 4. **Build in layer order**: backend App Boot → Controller → Entity → DAL → Repository → Component/Service/Use Case; frontend Controller → UI Component. Start each new file from its starter template.
 5. **Lint with the tools**: run `lint-fix`, then `lint`. What the scripts cover is judged only by their output - never by reviewing code by eye or by an AI agent/reviewer. Fix by hand only what the tools report but cannot fix. Never disable a rule to pass.
-6. **Tests** belong to the `contract-testing-ts` skill.
+6. **Round-trip guarantee**: creating, editing, extending, and cleanup (`references/commands/cleanup.md`) enforce the same rules through the same references, so `build` and `lint` exit 0 AND a cleanup pass over what you wrote finds nothing to fix. When in doubt, run the cleanup checklist sections against your own diff before calling the task done.
+7. **Tests** belong to the `contract-testing-ts` skill.
 
 ## Load Only What You Need
 
@@ -56,6 +61,8 @@ A project can match several rows (for example Express + TypeORM + Zod). Read eve
 | Task involves... | Read |
 |---|---|
 | Any code task (always, first) | `references/core-rules.md` |
+| Scaffolding a new project or package from scratch, or joining an existing project missing the `#src` alias / lint scripts / tsconfig setup | `references/architecture/project-scaffold.md` |
+| Seeing the assembled whole: every layer of a complete verified project together (tree, config, boot, one file per layer) | `references/architecture/example-app.md` |
 | Creating, naming, or renaming a file, export, enum, function, variable, or boolean | `references/style/naming-convention.md` |
 | Writing or editing function bodies (ternaries, loops, `let`, switches, arrows, mutation, defaults) | `references/style/code-style.md` |
 | Error handling, exhaustive switches, or a function whose name must cover its behavior | `references/style/function-guidelines.md` |

@@ -2,6 +2,8 @@
 
 This document defines where files must be placed and how modules should be structured. Following these rules prevents misplaced code and maintains architectural integrity.
 
+Before placing the FIRST file of a brand-new project, the scaffold (package.json, tsconfig, lint scripts, `#src` alias) must already exist: see `references/architecture/project-scaffold.md`. For the assembled result of these placement rules across a whole verified project, see `references/architecture/example-app.md` - the tree below is that app's skeleton.
+
 ## The Master Criterion: Domain-Awareness
 
 The single clearest dividing line for "where does this logic live":

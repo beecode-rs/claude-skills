@@ -66,7 +66,7 @@ A `<name>-singleton.ts` file holds a class that must have exactly one instance, 
 
 ```typescript
 // src/lib/app-window-store-singleton.ts
-import { singletonPattern } from '@beecode/msh-util/singleton/pattern'
+import { singletonPattern } from '@beecode/msh-util'
 
 export class _AppWindowStore {
   protected _window: BrowserWindow | undefined = undefined

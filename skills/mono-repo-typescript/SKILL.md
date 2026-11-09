@@ -14,7 +14,7 @@ Guide the structure and orchestration of TypeScript monorepos with multiple pack
 **Scope boundaries:**
 - **This skill:** Monorepo structure, package organization, Docker Compose, build orchestration
 - **writing-clean-ts skill:** Individual package code patterns (services, repositories, controllers)
-- **test-typescript skill:** Testing patterns and coverage
+- **contract-testing-ts skill:** Testing patterns and coverage
 
 ## When to Use
 
@@ -53,6 +53,159 @@ Guide the structure and orchestration of TypeScript monorepos with multiple pack
 common → node-common → node-{service}
 common → react-common → react-{app} / mobile-app
 ```
+
+## Package Rules
+
+These rules hold in every monorepo built with this skill. Code inside each package
+follows `writing-clean-ts`.
+
+### Where shared code goes
+
+Put code in the lowest package that every consumer already depends on:
+
+| The code is used by... | It goes in... |
+|---|---|
+| Frontend and backend (models, Zod schemas, enums, pure utils) | `common` |
+| Several Node services and needs Node (DB, RMQ, Express middleware, logger setup) | `node-common` |
+| Several React apps (components, hooks, API client) | `react-common` |
+| One package only | That package |
+
+- A model or Zod schema that both a `node-*` service and a `react-*` app use lives in
+  `common`, never duplicated in each package.
+- Code used by one package stays there. Move it down to a shared package when a second
+  package needs it, not before.
+- A shared package never contains code that only one app or service uses.
+
+### Dependency direction
+
+- `common` depends on no workspace package and on nothing platform-specific: no Node
+  built-ins (`fs`, `path`), no Express or TypeORM, no React or DOM APIs.
+- `node-common` depends only on `common`. `react-common` depends only on `common`.
+- The tooling-only `@app/config` package (ESLint, Prettier and shared config files) is
+  the one exception: any package may list it, and it holds no runtime code.
+- `react-*`, `mobile-app` and `website` never depend on `node-*` or `node-common`, and
+  `node-*` never depends on `react-*` or `react-common`.
+- A service never imports another service (`node-core` never imports `node-auth`).
+  Services talk over HTTP or RMQ; code they both need moves down to `common` or
+  `node-common`.
+- An app never imports another app (`react-admin` never imports `react-core`, and neither
+  imports `mobile-app` or `website`). Code two apps need moves down to `react-common` (or
+  `common` when it has no React code).
+- To break a cycle, move the code both sides need down into the lowest package both
+  already depend on. Never break it by adding the reverse dependency.
+
+### Imports across packages
+
+- Inside a package, import its own files with `#src/...` and the `.js` extension:
+  `import { userService } from '#src/business/service/user/user-service.js'`.
+- Across packages, import through the target's `exports` map with the full path and no
+  extension: `import { UserModel } from '@app/common/business/model/user/user-model'`. The
+  `"./*"` export already maps it to `./dist/*.js`, so adding `.js` would resolve to
+  `user-model.js.js`.
+- Never import another package with a relative path (`../../common/src/...`), through its
+  `src/` or `dist/` folder (`@app/common/src/...`), through its `__internal__/` folder, or
+  as a bare package name (`@app/common`). Packages have no `"."` export and no barrel.
+  The `writing-clean-ts` exception that lets an npm package's `main` entry be an
+  `index.ts` applies only to packages published to npm, never to `@app/` workspace
+  packages.
+- The importing package lists the target in `dependencies` as `"workspace:*"`.
+
+### Dependency versions
+
+- Internal packages use `"workspace:*"`.
+- External packages use `"catalog:"`. A package never pins its own version range.
+- To add a new external dependency, add it to `catalog:` in `pnpm-workspace.yaml` first,
+  then reference it as `"catalog:"` in the package, then run `pnpm install`.
+- `ERR_PNPM_CATALOG_ENTRY_NOT_FOUND_FOR_SPEC` means a package references `catalog:` for a
+  dependency the catalog doesn't have. Add it to the catalog.
+
+### package.json shape
+
+Every library and service package has:
+
+- `name`: `@app/{folder-name}`
+- `type`: `module`
+- `exports`: `"./*"` mapping `import` to `./dist/*.js` and `types` to `./src/*.ts`.
+  Shared libraries (`common`, `node-common`, `react-common`) add
+  `"./__internal__/*": null`.
+- `imports`: `"#src/*.js": "./dist/*.js"`
+- scripts: `build` is `node ../../resource/script/npm/clean.js . && tsc -p ./tsconfig.build.json`,
+  `clean` is `node ../../resource/script/npm/clean.js .`, and `test` runs Vitest with a
+  base config from `config/vitest/`. Node resolves `#src` at runtime through `imports`, so
+  the build needs no `tsc-alias` step. Every package also owns `"lint:eslint": "eslint ./ --quiet"`
+  and `"lint-fix:eslint": "eslint ./ --fix"`, with an `eslint.config.js` that calls the
+  root factory (`writing-clean-ts` `references/linting.md`).
+- dependencies: `workspace:*` and `catalog:` only (see above).
+
+A Vite app (`react-{name}`) has no `exports`, `imports` or `tsc` build: its `build` is
+`tsc --noEmit && vite build`. `mobile-app` follows `writing-clean-ts`
+`references/frameworks/expo.md`: no `type`, no `exports` or `imports`,
+`"main": "expo-router/entry"`, and the `@/*` tsconfig alias instead of `#src`.
+
+The root `package.json` holds `engines` (`node` and `pnpm` ranges), `private: true` and the
+orchestration scripts.
+
+### TypeScript config
+
+- A Node or shared package's `tsconfig.json` extends
+  `../../config/typescript/tsconfig.base.json`; a React package extends
+  `../../config/typescript/tsconfig.react.base.json`. Every package sets the `#src` paths;
+  packages that compile to `dist/` also set `outDir` and `rootDir`, while a Vite app sets
+  `noEmit: true` (Vite builds it).
+- `tsconfig.build.json` extends `./tsconfig.json` and turns on declarations.
+- The root `tsconfig.json` has `composite: true`, `files: []` and one `references` entry per
+  package folder. A new package is added to `references`.
+
+### Root scripts
+
+- The root `package.json` only orchestrates: `build`, `clean` and `test` fan out with
+  `pnpm -r`, and `watch` runs `tsc -b -w`.
+- Lint follows `writing-clean-ts` `references/linting.md`: the root runs Prettier, its own
+  ESLint pass, `jsonsort`, and `lint:packages` (`pnpm -r run lint:eslint`), which fans out
+  to each package's `lint:eslint`.
+- Each package owns its `build`, `clean`, `test` and `serve` scripts. Root scripts never
+  repeat package logic.
+- Run one package's script with `pnpm --filter @app/{name} {script}` (or the `ws-build` /
+  `ws-test` shortcuts, which expand to it), never `cd packages/{name} && pnpm run ...`.
+
+### compose.yml services
+
+Each runnable package is one service named after its folder:
+
+- `build` uses context `.` and `resource/docker/Dockerfile.node-base`.
+- `command: pnpm run serve` and `working_dir: /app/packages/{name}`.
+- The source is mounted read-only: `./:/app:ro` (plus the `node_modules` named volume).
+- `depends_on` lists the infrastructure it needs with `condition: service_healthy`, and
+  every infrastructure service (`pg`, `rmq`, `proxy`) defines a `healthcheck`.
+- Traefik labels route by path: `PathPrefix(`/api/{domain}`)` with a `stripprefix`
+  middleware for a backend service, `PathPrefix(`/{app}`)` for a frontend app.
+
+### READMEs
+
+Every package has a `README.md`, no exceptions, plus one at the monorepo root.
+A README is written for the reader who just arrived: what this thing is, how to run
+it, what it expects from the environment.
+
+**Library package** (published or installed by other projects): title, one-line
+purpose, badges (CI, coverage, license, npm) when the package is published, a
+generated table of contents, `Install` (`pnpm i @scope/name`), `Quick Start` or
+`Usage` with one minimal runnable example, `API Reference` when the package has a
+real surface, `Architecture` with a diagram when it helps, `License`.
+
+**App or service package** (runnable, not installed): title, one-line purpose,
+generated table of contents, how to run it in dev (the compose service and its URL),
+env vars as one table per config group with `env` / `Required` / `Default` columns
+generated from the package's `src/util/config.ts`, the scripts worth knowing, and a
+short note on how it fits with the other packages.
+
+**Monorepo root**: what the project is, a package map, prerequisites, getting
+started (the init steps in order), and the common commands.
+
+**Diagrams** inside a README: PlantUML by default. Use Mermaid when the project is
+open source and hosted on GitHub, because GitHub renders Mermaid natively.
+
+The table of contents uses `<!-- toc -->` / `<!-- tocstop -->` markers and is
+generated (`markdown-toc` or equivalent), never maintained by hand.
 
 ## Monorepo Structure Overview
 
@@ -100,7 +253,16 @@ project-root/
   "scripts": {
     "build": "tsc -b && pnpm -r build",
     "clean": "pnpm -r clean",
-    "lint": "prettier . && eslint . && pnpm -r lint",
+    "lint": "pnpm run lint:prettier && pnpm run lint:eslint && pnpm run lint:packages && pnpm run lint:json",
+    "lint-fix": "pnpm run lint-fix:prettier && pnpm run lint-fix:eslint && pnpm run lint-fix:packages && pnpm run lint-fix:json",
+    "lint:eslint": "eslint ./ --quiet --no-error-on-unmatched-pattern",
+    "lint-fix:eslint": "pnpm run lint:eslint --fix",
+    "lint:packages": "pnpm -r run lint:eslint",
+    "lint-fix:packages": "pnpm -r run lint-fix:eslint",
+    "lint:prettier": "prettier --check {**/*,*}.{js,ts,jsx,tsx,cjs,cts,mjs,mts,html}",
+    "lint-fix:prettier": "prettier --write {**/*,*}.{js,ts,jsx,tsx,cjs,cts,mjs,mts,html}",
+    "lint:json": "pnpm run lint-fix:json -c",
+    "lint-fix:json": "jsonsort -t *.json '!./packages' '!./node_modules' '!./**/.env*'",
     "test": "pnpm -r test",
     "watch": "tsc -b -w",
     "ws-build": "pnpm --filter",
@@ -202,12 +364,12 @@ Each package uses path aliases for clean imports:
 ```json
 {
   "imports": {
-    "#src/*": "./dist/*.js"
+    "#src/*.js": "./dist/*.js"
   }
 }
 ```
 
-**Usage in code:**
+**Usage in code** (always with the `.js` extension):
 ```typescript
 import { someUtil } from '#src/util/some-util.js'
 import { UserModel } from '#src/business/model/user/user-model.js'
@@ -223,10 +385,10 @@ node ../../resource/script/npm/clean.js .
 
 # 2. Compile TypeScript
 tsc -p ./tsconfig.build.json
-
-# 3. Resolve aliases (tsc-alias)
-tsc-alias -p ./tsconfig.build.json
 ```
+
+No alias-rewriting step: the compiled code keeps `#src/...js` imports and Node resolves
+them at runtime through the package's `imports` field.
 
 ## Inter-Package Dependencies
 
@@ -359,12 +521,12 @@ Use this checklist when creating a new package:
 2. [ ] Create `package.json` with:
    - `name`: `@app/node-{name}`
    - `type`: `module`
-   - `exports` and `imports` for `#src/*`
-   - Dependencies: `@app/common`, `@app/node-common` as `workspace:*`
-   - Build scripts
+   - `exports` (`"./*"`) and `imports` (`"#src/*.js": "./dist/*.js"`)
+   - Dependencies: `@app/common`, `@app/node-common` as `workspace:*`, external ones as `catalog:`
+   - `build`, `clean`, `lint:eslint`, `lint-fix:eslint`, `serve`, `start` and `test` scripts
 3. [ ] Create `tsconfig.json` extending `../../config/typescript/tsconfig.base.json`
-4. [ ] Create `tsconfig.build.json` for production builds
-5. [ ] Create `src/` with `app/server-app.ts` entry point
+4. [ ] Create `tsconfig.build.json` for production builds, and `eslint.config.js` calling `createNodeEslintConfig`
+5. [ ] Create `src/main.ts` (starts the flow) and `src/app-boot/{name}-app.ts` (the AppFlow, named for the app), per the `writing-clean-ts` app-boot layer
 6. [ ] Add to root `tsconfig.json` references
 7. [ ] Add to `compose.yml` with Traefik labels
 8. [ ] Run `pnpm install`
@@ -376,9 +538,9 @@ Use this checklist when creating a new package:
    - `name`: `@app/react-{name}`
    - `type`: `module`
    - Dependencies: `@app/common`, `@app/react-common` as `workspace:*`
-   - Vite config for dev server
+   - Scripts: `build` (`tsc --noEmit && vite build`), `lint:eslint`, `lint-fix:eslint`, `serve` (`vite`), `start`, `test`
 3. [ ] Create `tsconfig.json` extending `../../config/typescript/tsconfig.react.base.json`
-4. [ ] Create `vite.config.ts` with `vite-tsconfig-paths` plugin
+4. [ ] Create `vite.config.ts` with `vite-tsconfig-paths` plugin, and `eslint.config.js` calling `createReactEslintConfig`
 5. [ ] Create `src/` with `main.tsx` entry point
 6. [ ] Add to root `tsconfig.json` references
 7. [ ] Add to `compose.yml` if needed
@@ -424,11 +586,13 @@ Use this checklist when creating a new package:
 
 ## Troubleshooting
 
-### `ERR_PNPM_NO_MATCHING_VERSION`
+### `ERR_PNPM_CATALOG_ENTRY_NOT_FOUND_FOR_SPEC`
 
 **Cause:** Package references a `catalog:` dependency that doesn't exist in `pnpm-workspace.yaml`
+(pnpm prints `No catalog entry 'x' was found for catalog 'default'`). Not to be confused with
+`ERR_PNPM_NO_MATCHING_VERSION`, which means no published version matches a range.
 
-**Fix:** Add the missing package to the catalog, or use explicit version:
+**Fix:** Add the missing package to the catalog (never pin a version in the package instead):
 ```yaml
 # pnpm-workspace.yaml
 catalog:
@@ -456,9 +620,10 @@ catalog:
 
 ### ES module errors in built code
 
-**Cause:** TypeScript emits imports without `.js` extensions
+**Cause:** Source imports are missing the `.js` extension (TypeScript emits them as written)
 
-**Fix:** Run `tsc-alias` after build, or use the bundled fix script:
+**Fix:** Add `.js` to the imports in `src/`. For a React package built without a bundler,
+use the bundled fix script:
 ```bash
 node scripts/build-esm-fix.js packages/your-package
 ```
@@ -504,7 +669,7 @@ Copy these to `resource/script/npm/` in your project and reference in package.js
 ```json
 {
   "scripts": {
-    "build": "node ../../resource/script/npm/clean.js . && tsc -p ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json"
+    "build": "node ../../resource/script/npm/clean.js . && tsc -p ./tsconfig.build.json"
   }
 }
 ```

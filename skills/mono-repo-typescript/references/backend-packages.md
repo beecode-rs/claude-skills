@@ -12,11 +12,11 @@ Shared business models, utilities, and domain logic. Platform-agnostic.
 packages/common/
 ├── src/
 │   ├── business/
-│   │   └── model/           # Domain models (User, Order, etc.)
+│   │   ├── model/           # Domain models (User, Order, etc.)
+│   │   └── schema/          # Zod schemas shared by frontend and backend
 │   ├── lib/                 # Shared utilities
-│   │   ├── zod/             # Zod schemas
+│   │   ├── zod/             # Zod wrapper (zod-wrapper.ts)
 │   │   └── util/            # Helper functions
-│   └── index.ts
 ├── package.json
 └── tsconfig.json
 ```
@@ -35,11 +35,13 @@ packages/common/
     "./__internal__/*": null
   },
   "imports": {
-    "#src/*": "./dist/*.js"
+    "#src/*.js": "./dist/*.js"
   },
   "scripts": {
-    "build": "node ../../resource/script/npm/clean.js . && tsc -p ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json",
+    "build": "node ../../resource/script/npm/clean.js . && tsc -p ./tsconfig.build.json",
     "clean": "node ../../resource/script/npm/clean.js .",
+    "lint:eslint": "eslint ./ --quiet",
+    "lint-fix:eslint": "eslint ./ --fix",
     "test": "vitest run -c ../../config/vitest/vitest.config.unit.base.js"
   },
   "dependencies": {
@@ -120,11 +122,13 @@ packages/node-common/
     "./__internal__/*": null
   },
   "imports": {
-    "#src/*": "./dist/*.js"
+    "#src/*.js": "./dist/*.js"
   },
   "scripts": {
-    "build": "node ../../resource/script/npm/clean.js . && tsc -p ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json",
+    "build": "node ../../resource/script/npm/clean.js . && tsc -p ./tsconfig.build.json",
     "clean": "node ../../resource/script/npm/clean.js .",
+    "lint:eslint": "eslint ./ --quiet",
+    "lint-fix:eslint": "eslint ./ --fix",
     "test": "vitest run -c ../../config/vitest/vitest.config.unit.base.js"
   },
   "dependencies": {
@@ -157,8 +161,9 @@ Individual microservice with controllers, services, repositories.
 ```
 packages/node-core/
 ├── src/
-│   ├── app/                 # Application entry
-│   │   └── server-app.ts
+│   ├── main.ts              # Entry point: starts the app flow, nothing else
+│   ├── app-boot/            # AppFlow and life cycles (see writing-clean-ts app-boot layer)
+│   │   └── core-app.ts
 │   ├── controller/          # Express controllers
 │   │   └── user/
 │   │       ├── user-controller.ts
@@ -202,12 +207,15 @@ packages/node-core/
     }
   },
   "imports": {
-    "#src/*": "./dist/*.js"
+    "#src/*.js": "./dist/*.js"
   },
   "scripts": {
-    "build": "node ../../resource/script/npm/clean.js . && tsc -p ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json",
-    "serve": "NODE_ENV=development nodemon --inspect=0.0.0.0:9229 dist/app/server-app.js",
-    "start": "NODE_ENV=production node dist/app/server-app.js",
+    "build": "node ../../resource/script/npm/clean.js . && tsc -p ./tsconfig.build.json",
+    "clean": "node ../../resource/script/npm/clean.js .",
+    "lint:eslint": "eslint ./ --quiet",
+    "lint-fix:eslint": "eslint ./ --fix",
+    "serve": "NODE_ENV=development nodemon --inspect=0.0.0.0:9229 dist/main.js",
+    "start": "NODE_ENV=production node dist/main.js",
     "test": "vitest run -c ../../config/vitest/vitest.config.unit.base.js",
     "test:int": "vitest run -c ../../config/vitest/vitest.config.int.base.js",
     "migration:generate": "typeorm migration:generate -d dist/lib/typeorm/datasource.js",
@@ -254,20 +262,26 @@ packages/node-core/
 }
 ```
 
-### Entry Point Example (server-app.ts)
+### Entry Point Example (main.ts)
+
+The entry point only starts the app flow. The flow and its life cycles live in
+`src/app-boot/` and follow the `writing-clean-ts` app-boot layer (Express starts inside a
+life cycle, config comes from `#src/util/config.js`, logging goes through `logger()`, never
+`console`).
 
 ```typescript
-import express from 'express'
-import { userRoute } from '#src/controller/user/user-route.js'
+import 'reflect-metadata'
 
-const app = express()
-app.use(express.json())
+import { AppStarter, setAppBootLogger } from '@beecode/msh-app-boot'
 
-app.use('/api/core/user', userRoute)
+import { CoreApp } from '#src/app-boot/core-app.js'
+import { logger } from '#src/util/logger.js'
 
-const PORT = process.env.PORT || 3000
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+setAppBootLogger(logger())
+
+new AppStarter(new CoreApp()).start().catch((error: unknown) => {
+  logger().error('Core app failed to start', error)
+  process.exit(1)
 })
 ```
 

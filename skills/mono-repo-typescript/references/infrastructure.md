@@ -93,33 +93,58 @@ networks:
         - subnet: 172.221.0.0/16
 ```
 
-### Dockerfile (Node Base)
+### Dockerfile (Node Base, dev only)
+
+One shared dev base image per runtime, at `resource/docker/Dockerfile.<name>`
+(for example `Dockerfile.node-base`), used by every package's `compose.yml` service.
+No per-package dev Dockerfiles.
+
+**Rules:**
+
+- The base tag is an exact pinned `node:<version>-alpine<version>` that matches the
+  root `engines.node` range (`node:22.14.0-alpine3.21`, never `node:22-alpine`).
+- pnpm is installed globally once (`npm install -g pnpm`), and its store and global
+  dirs are configured for the `node` user so `pnpm install` never needs root.
+- The container runs as `USER node`. Switch back to `USER root` only for setup steps
+  that genuinely need it (creating the app dir, writing host keys), then return to
+  `USER node`.
+- The dev image never copies source. Compose mounts the repo as a read-only volume;
+  only certificates, tools and config that live outside `node_modules` are copied in.
+- `CMD ["pnpm", "start"]`; compose overrides the command and working dir per service.
+- Production images are intentionally not defined by this skill.
 
 **resource/docker/Dockerfile.node-base:**
 
 ```dockerfile
-FROM node:22-alpine
+FROM node:22.14.0-alpine3.21
 
-ENV APP_PATH=/app
-ENV PORT=3000
-ENV NODE_ENV=development
+ENV NPM_CONFIG_LOGLEVEL=warn \
+    APP_PATH=/usr/app \
+    PORT=3000 \
+    NODE_USER_HOME=/home/node \
+    NODE_LOCAL_BIN=/home/node/.local/bin \
+    NODE_LOCAL_PNPM=/home/node/.local/share/pnpm \
+    NODE_PNPM_STORE=/home/node/.pnpm-store
 
-# Enable pnpm via corepack
-RUN corepack enable && corepack prepare pnpm@latest --activate
+ENV PATH="${PATH}:${NODE_LOCAL_BIN}"
+
+RUN apk add -qU --no-cache git curl g++ make python3 ca-certificates openssh && \
+    npm install -g pnpm
+
+USER node
+RUN mkdir -p ${NODE_LOCAL_BIN} ${NODE_LOCAL_PNPM} ${NODE_PNPM_STORE} && \
+    pnpm config set global-bin-dir ${NODE_LOCAL_BIN} && \
+    pnpm config set global-dir ${NODE_LOCAL_PNPM} && \
+    pnpm config set store-dir ${NODE_PNPM_STORE}
+
+USER root
+RUN mkdir -p ${APP_PATH} && \
+    chown node:node -R ${APP_PATH}
+
+USER node
 
 WORKDIR ${APP_PATH}
 
-# Copy lock files first for better caching
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-COPY packages/*/package.json ./packages/*/
-
-# Install dependencies
-RUN pnpm install --frozen-lockfile
-
-# Copy source (mounted as volume in dev, but needed for production builds)
-COPY . .
-
-USER node
 EXPOSE ${PORT}
 
 CMD ["pnpm", "start"]

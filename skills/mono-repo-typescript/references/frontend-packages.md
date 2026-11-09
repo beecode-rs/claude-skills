@@ -11,7 +11,7 @@ Shared React components, hooks, and utilities used across web and mobile apps.
 ```
 packages/react-common/
 ├── src/
-│   ├── component/           # Shared UI components
+│   ├── ui-component/        # Shared UI components
 │   │   ├── auth/
 │   │   │   └── login-form.tsx
 │   │   ├── input/
@@ -27,15 +27,15 @@ packages/react-common/
 │   │   ├── axios/           # Axios interceptors
 │   │   │   └── api-client.ts
 │   │   └── react-admin/     # React-admin utilities
-│   ├── hook/                # Shared hooks
-│   │   ├── use-auth.ts
-│   │   └── use-form.ts
+│   ├── business/
+│   │   └── hook/            # Shared hooks
+│   │       ├── use-auth.ts
+│   │       └── use-form.ts
 │   ├── screen/              # Shared screen components
 │   │   └── error-boundary.tsx
 │   ├── asset/               # SCSS assets
 │   │   └── variables.scss
-│   ├── util/
-│   └── index.ts
+│   └── util/
 ├── .storybook/
 │   └── main.ts
 ├── package.json
@@ -59,12 +59,14 @@ packages/react-common/
     "./__internal__/*": null
   },
   "imports": {
-    "#src/*": "./dist/*.js"
+    "#src/*.js": "./dist/*.js"
   },
   "scripts": {
-    "build": "node ../../resource/script/npm/clean.js . && tsc -p ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json && pnpm run build-css",
+    "build": "node ../../resource/script/npm/clean.js . && tsc -p ./tsconfig.build.json && pnpm run build-css",
     "build-css": "sass src/:dist/ --no-source-map",
     "clean": "node ../../resource/script/npm/clean.js .",
+    "lint:eslint": "eslint ./ --quiet",
+    "lint-fix:eslint": "eslint ./ --fix",
     "test": "vitest run -c ../../config/vitest/vitest.config.unit.base.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
@@ -155,8 +157,9 @@ packages/react-admin/
   "name": "@app/react-admin",
   "type": "module",
   "scripts": {
-    "build": "tsc -b && node ../../resource/script/npm/build-esm-fix.js . && pnpm run build-css && tsc-alias",
-    "build-css": "sass src/:dist/ --no-source-map",
+    "build": "tsc --noEmit && vite build",
+    "lint:eslint": "eslint ./ --quiet",
+    "lint-fix:eslint": "eslint ./ --fix",
     "serve": "vite",
     "start": "vite preview",
     "test": "vitest run -c ../../config/vitest/vitest.config.unit.base.js",
@@ -227,24 +230,31 @@ export default defineConfig({
 
 ## Mobile App (React Native / Expo)
 
-Mobile application sharing code with web apps.
+Mobile application sharing code with web apps. It is an Expo Router app, so it follows
+`writing-clean-ts` `references/frameworks/expo.md`: no `"type": "module"`, no `exports` or
+`imports` field, `"main": "expo-router/entry"`, and the `@/*` tsconfig alias instead of `#src`
+(`import { userService } from '@/business/service/user-service'`, no `.js`). Only the
+workspace rules (dependencies, versions, cross-package imports) are the same as every other
+package.
 
 ### Structure
 
 ```
 packages/mobile-app/
 ├── src/
-│   ├── app/
-│   │   └── _layout.tsx
-│   ├── screen/
+│   ├── app/                 # Expo Router routes only (path = URL)
+│   │   ├── _layout.tsx      # Root layout: the composition root
 │   │   ├── (tabs)/
 │   │   │   ├── _layout.tsx
 │   │   │   ├── index.tsx
 │   │   │   └── settings.tsx
 │   │   └── user/
 │   │       └── [id].tsx
-│   ├── component/
-│   │   └── button.tsx
+│   ├── app-boot/
+│   ├── business/
+│   ├── ui-component/        # Screens and components, plain props
+│   │   └── user/
+│   │       └── detail.tsx
 │   ├── lib/
 │   │   └── storage.ts
 │   └── util/
@@ -258,13 +268,15 @@ packages/mobile-app/
 ```json
 {
   "name": "@app/mobile-app",
-  "type": "module",
+  "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export",
+    "lint:eslint": "eslint ./ --quiet",
+    "lint-fix:eslint": "eslint ./ --fix",
     "test": "vitest run -c ../../config/vitest/vitest.config.unit.base.js"
   },
   "dependencies": {
@@ -294,8 +306,7 @@ packages/mobile-app/
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "#src": ["./src"],
-      "#src/*": ["./src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src/**/*", "*.config.ts"],
@@ -337,7 +348,8 @@ packages/website/
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint:eslint": "eslint ./ --quiet",
+    "lint-fix:eslint": "eslint ./ --fix",
     "test": "vitest run -c ../../config/vitest/vitest.config.unit.base.js"
   },
   "dependencies": {

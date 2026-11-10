@@ -2,6 +2,29 @@
 
 This document defines the standard approach for handling timestamps in the TypeScript codebase to avoid Date object serialization issues.
 
+## Contents
+
+- [The Problem with Date Objects](#the-problem-with-date-objects)
+- [The Solution: Unix Timestamps in Milliseconds](#the-solution-unix-timestamps-in-milliseconds)
+  - [Example Conversion](#example-conversion)
+- [TypeORM Entity Implementation](#typeorm-entity-implementation)
+  - [Basic Pattern](#basic-pattern)
+  - [Timestamp Column Options](#timestamp-column-options)
+  - [Timestamp Transformer](#timestamp-transformer)
+- [Field Naming Convention](#field-naming-convention)
+  - [Standard Names](#standard-names)
+  - [Distinguishing Between Timestamps](#distinguishing-between-timestamps)
+- [Model Implementation](#model-implementation)
+- [DAL Entity-Model Conversion](#dal-entity-model-conversion)
+- [Working with Timestamps](#working-with-timestamps)
+  - [Creating Records](#creating-records)
+  - [Querying with Timestamps](#querying-with-timestamps)
+  - [Displaying Timestamps](#displaying-timestamps)
+- [Benefits of This Approach](#benefits-of-this-approach)
+- [Important Notes](#important-notes)
+  - [Transformer Limitations](#transformer-limitations)
+  - [Migration from Date to Unix Timestamps](#migration-from-date-to-unix-timestamps)
+
 ## The Problem with Date Objects
 
 When using Date objects in models and sending them through HTTP requests in JSON format, the Date object gets automatically converted to an ISO string format (e.g., `'2022-09-05T11:56:49.769Z'`). This creates problems:

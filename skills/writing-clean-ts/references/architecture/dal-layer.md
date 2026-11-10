@@ -2,6 +2,25 @@
 
 Data Access Layer (DAL) classes provide an abstraction over data persistence mechanisms, isolating framework-specific data access code from the Repository Layer. This is the **Data Access Layer (DAL)** that wraps framework-specific implementations and handles entity-model conversion.
 
+## Contents
+
+- [Framework Implementations](#framework-implementations)
+- [Naming Convention](#naming-convention)
+- [Purpose](#purpose)
+- [Structure](#structure)
+- [Key Characteristics](#key-characteristics)
+- [Entity-Model Conversion](#entity-model-conversion)
+- [Fixed Filters](#fixed-filters)
+- [Data Source Abstraction](#data-source-abstraction)
+  - [Database](#database)
+  - [File System](#file-system)
+  - [External APIs](#external-apis)
+  - [In-Memory](#in-memory)
+- [File and Memory DALs](#file-and-memory-dals)
+- [Architectural Rules](#architectural-rules)
+  - [✅ DO](#-do)
+  - [❌ DON'T](#-dont)
+
 ## Framework Implementations
 
 This is an abstract layer pattern. Known implementation: **TypeORM DAL** - SQL database access using TypeORM ORM.

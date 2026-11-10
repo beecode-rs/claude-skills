@@ -2,6 +2,33 @@
 
 Full-scope code review: validates TypeScript against both line-level **style** (`style/`) and the **layered architecture** (`architecture/`). For a scoped pass, use `/clean-style` (style only) or `/clean-arch` (architecture only).
 
+## Contents
+
+- [Usage](#usage)
+- [Process](#process)
+- [Checklist](#checklist)
+  - [1. Comments Check](#1-comments-check)
+  - [2. For Loops Check `[lint]`](#2-for-loops-check-lint)
+  - [3. Multi-Line Formatting Check](#3-multi-line-formatting-check)
+  - [4. File Organization Check](#4-file-organization-check)
+  - [5. Naming Convention Check](#5-naming-convention-check)
+  - [6. Class vs Object Pattern Check](#6-class-vs-object-pattern-check)
+  - [7. Exported Instances Check](#7-exported-instances-check)
+  - [8. Object Params Pattern Check](#8-object-params-pattern-check)
+  - [9. Export Pattern Check](#9-export-pattern-check)
+  - [10. Root-level Helper Functions Check](#10-root-level-helper-functions-check)
+  - [11. Barrel Export Check](#11-barrel-export-check)
+  - [12. Exhaustive Enum Switch Check](#12-exhaustive-enum-switch-check)
+  - [13. `let` & If/Else Chain Check](#13-let--ifelse-chain-check)
+  - [14. Import Paths Check `[lint]`](#14-import-paths-check-lint)
+  - [15. Constant, Config & Platform Check](#15-constant-config--platform-check)
+  - [16. Enum & Type Check](#16-enum--type-check)
+  - [17. Naming Meaning Check](#17-naming-meaning-check)
+  - [18. Layer Placement Check](#18-layer-placement-check)
+  - [19. Repo & DAL Check](#19-repo--dal-check)
+- [Output Format](#output-format)
+- [Quick Reference Card](#quick-reference-card)
+
 ## Usage
 
 When user says: "cleanup this code", "review this file", "check code quality", or "validate code structure"

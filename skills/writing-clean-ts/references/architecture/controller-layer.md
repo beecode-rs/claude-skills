@@ -2,6 +2,41 @@
 
 Controllers are the unified entry point for ALL external interactions with your application, handling both frontend and backend interfaces. Part of the **Controller Layer (CL)** in application architecture.
 
+## Contents
+
+- [Framework Implementations](#framework-implementations)
+- [Naming Convention](#naming-convention)
+  - [Backend Controllers](#backend-controllers)
+  - [Frontend Controllers](#frontend-controllers)
+- [Purpose](#purpose)
+  - [Backend Controllers](#backend-controllers-1)
+  - [Frontend Controllers](#frontend-controllers-1)
+- [Controller Types](#controller-types)
+  - [1. HTTP API Controllers](#1-http-api-controllers)
+  - [2. Frontend Router Controllers](#2-frontend-router-controllers)
+  - [3. Event Bus Controllers](#3-event-bus-controllers)
+  - [4. Message Queue Controllers](#4-message-queue-controllers)
+- [Router Integration](#router-integration)
+  - [HTTP API Router](#http-api-router)
+  - [Frontend Router](#frontend-router)
+  - [Event Bus Router](#event-bus-router)
+  - [IPC Router (Electron)](#ipc-router-electron)
+- [Folder Structure](#folder-structure)
+  - [Backend Controllers](#backend-controllers-2)
+  - [Frontend Controllers](#frontend-controllers-2)
+- [Key Characteristics](#key-characteristics)
+  - [HTTP API Controllers](#http-api-controllers)
+  - [Frontend Router Controllers](#frontend-router-controllers)
+  - [Event Bus Controllers](#event-bus-controllers)
+  - [Message Queue Controllers](#message-queue-controllers)
+- [Architectural Rules](#architectural-rules)
+  - [✅ DO](#-do)
+  - [❌ DON'T](#-dont)
+- [Relationship with Other Layers](#relationship-with-other-layers)
+  - [Backend Flow](#backend-flow)
+  - [Frontend Flow](#frontend-flow)
+  - [Controller Responsibilities by Type](#controller-responsibilities-by-type)
+
 ## Framework Implementations
 
 This is an abstract layer pattern. Known implementations:

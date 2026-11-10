@@ -1,5 +1,20 @@
 # Function Size & Structure
 
+## Contents
+
+- [Overview](#overview)
+- [Measured Reality](#measured-reality)
+- [The Splitting Move: Extract a Collaborator, Not a Local Helper](#the-splitting-move-extract-a-collaborator-not-a-local-helper)
+- [Signals a function is too big](#signals-a-function-is-too-big)
+- [Rules](#rules)
+  - [1. One responsibility](#1-one-responsibility)
+  - [2. Prefer early returns (guard clauses)](#2-prefer-early-returns-guard-clauses)
+  - [3. Split into siblings or `protected _` helpers, never local functions](#3-split-into-siblings-or-protected-_-helpers-never-local-functions)
+  - [4. Extract "comment-worthy" blocks](#4-extract-comment-worthy-blocks)
+  - [5. Declarative length is not complexity](#5-declarative-length-is-not-complexity)
+- [Common pitfalls](#common-pitfalls)
+- [Summary](#summary)
+
 ## Overview
 
 A function should do **one named thing**. If you need "and" to describe what a function does, it does more than one thing and should be split. This is the single most effective readability lever - more than comments (which are prohibited) or formatting.

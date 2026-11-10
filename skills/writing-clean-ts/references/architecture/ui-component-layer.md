@@ -2,6 +2,31 @@
 
 UI Components are reusable, presentational components that handle rendering, user interaction, and local state management. Part of the **Presentation Layer (PL)** in frontend architecture.
 
+## Contents
+
+- [Framework Implementations](#framework-implementations)
+- [Naming Convention](#naming-convention)
+- [Purpose](#purpose)
+- [Structure](#structure)
+  - [Simple Presentational Component](#simple-presentational-component)
+  - [Smart Component with Data Fetching](#smart-component-with-data-fetching)
+  - [Form Input Component with Ref](#form-input-component-with-ref)
+- [Key Characteristics](#key-characteristics)
+- [Architectural Rules](#architectural-rules)
+  - [✅ DO](#-do)
+  - [❌ DON'T](#-dont)
+- [Component Categories](#component-categories)
+  - [1. Presentational Components](#1-presentational-components)
+  - [2. Smart Components](#2-smart-components)
+  - [3. Form Components](#3-form-components)
+  - [4. Layout Components](#4-layout-components)
+- [Folder Structure](#folder-structure)
+- [Common Patterns](#common-patterns)
+  - [Conditional Rendering](#conditional-rendering)
+  - [Event Callbacks](#event-callbacks)
+  - [Subscription/Real-time Updates](#subscriptionreal-time-updates)
+- [Relationship with Other Layers](#relationship-with-other-layers)
+
 ## Framework Implementations
 
 This is an abstract layer pattern. Known implementation: **React UI Components** - React components with MUI and React Query.
@@ -202,13 +227,6 @@ export const CommitSelectInput = forwardRef<CommitSelectInputRef, {
 - **Error handling**: Displays error messages gracefully
 - **Composable**: Can contain other UI components
 - **Styled**: Uses component libraries (Material-UI, Ant Design, Chakra, etc.)
-
-## Component Categories
-
-1. **Presentational Components**: Pure components that only render based on props (no data fetching)
-2. **Smart Components**: Components that fetch data and manage state
-3. **Form Components**: Components that handle form inputs and validation
-4. **Layout Components**: Components that structure other components
 
 ## Architectural Rules
 

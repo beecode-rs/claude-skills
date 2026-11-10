@@ -2,6 +2,17 @@
 
 The App Boot Layer owns application startup and shutdown: it brings resources up in dependency order before the app serves anything, and takes them down gracefully when the app stops.
 
+## Contents
+
+- [Implementation Package](#implementation-package)
+- [What Belongs Here](#what-belongs-here)
+- [File Organization](#file-organization)
+- [Life Cycle Shape](#life-cycle-shape)
+- [Flow Order](#flow-order)
+- [Graceful Shutdown](#graceful-shutdown)
+- [Testing Considerations](#testing-considerations)
+- [Key Takeaways](#key-takeaways)
+
 ## Implementation Package
 
 The layer is built on **[`@beecode/msh-app-boot`](https://github.com/beecode-rs/msh-app-boot)**: `LifeCycle` (one init/destroy unit), `AppFlow` (the ordered list of life cycles), and `AppStarter` (runs the flow and wires `SIGTERM`/`SIGINT` to a graceful stop). **Before writing app-boot code, use the `implementing-msh` skill** to get the exact API for the installed version; the snippets below show the shape, not a pinned API.

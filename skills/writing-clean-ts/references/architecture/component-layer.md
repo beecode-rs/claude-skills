@@ -1,5 +1,23 @@
 # Component Layer (CompL)
 
+## Contents
+
+- [Purpose](#purpose)
+- [Component vs Service Decision](#component-vs-service-decision)
+- [The Four Component Shapes](#the-four-component-shapes)
+  - [Shape A: strategy + selector (the canonical component)](#shape-a-strategy--selector-the-canonical-component)
+  - [Shape B: grouped pluggables (no interface, no selector)](#shape-b-grouped-pluggables-no-interface-no-selector)
+  - [Shape C: orchestrator + private helpers](#shape-c-orchestrator--private-helpers)
+  - [Shape D: multi-backend abstraction (re-export entry files)](#shape-d-multi-backend-abstraction-re-export-entry-files)
+- [The `_` Prefix Rule](#the-_-prefix-rule)
+- [Strategy Class Anatomy](#strategy-class-anatomy)
+- [Usage Examples](#usage-examples)
+  - [From a use-case or service (calling the selector)](#from-a-use-case-or-service-calling-the-selector)
+  - [From a controller (calling the public service directly)](#from-a-controller-calling-the-public-service-directly)
+  - [Importing a pluggable directly (Shape B)](#importing-a-pluggable-directly-shape-b)
+- [Key Principles](#key-principles)
+- [Common Pitfalls](#common-pitfalls)
+
 ## Purpose
 
 A component is an **isolated folder that encapsulates one unit of business logic**. The folder exposes a public API, and everything else inside it is private: `_`-prefixed files and `protected _` methods that are called only from within the folder.

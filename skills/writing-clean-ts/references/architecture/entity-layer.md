@@ -2,6 +2,23 @@
 
 Entities define the structure of data for persistence mechanisms. Part of the **Model Layer (ML)** used for data persistence.
 
+## Contents
+
+- [Framework Implementations](#framework-implementations)
+- [Naming Convention](#naming-convention)
+- [Purpose](#purpose)
+- [Structure](#structure)
+- [Key Characteristics](#key-characteristics)
+- [Model Layer Concepts](#model-layer-concepts)
+  - [Entity vs Domain Model vs Transport Object](#entity-vs-domain-model-vs-transport-object)
+- [Common Entity Patterns](#common-entity-patterns)
+  - [Base Entity Fields](#base-entity-fields)
+  - [Relationships](#relationships)
+  - [Nullable Properties](#nullable-properties)
+- [Architectural Rules](#architectural-rules)
+  - [✅ DO](#-do)
+  - [❌ DON'T](#-dont)
+
 ## Framework Implementations
 
 This is an abstract layer pattern. Known implementation: **TypeORM Entity** - SQL database entities using TypeORM decorators.

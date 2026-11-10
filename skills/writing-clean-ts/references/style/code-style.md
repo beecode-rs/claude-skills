@@ -1,5 +1,32 @@
 # Code Style Guide
 
+## Contents
+
+- [Purpose](#purpose)
+- [Multi-Line Code Requirement](#multi-line-code-requirement)
+  - [Why Multi-Line Code Matters for Coverage](#why-multi-line-code-matters-for-coverage)
+  - [Mandatory Multi-Line Formatting](#mandatory-multi-line-formatting)
+  - [Code Coverage Benefits](#code-coverage-benefits)
+- [Falsy Default Values](#falsy-default-values)
+  - [Preferred Falsy Defaults](#preferred-falsy-defaults)
+  - [Why Falsy Defaults](#why-falsy-defaults)
+  - [Boolean Flags: Invert the Name, Not the Check](#boolean-flags-invert-the-name-not-the-check)
+  - [When Truthy Defaults Are Acceptable](#when-truthy-defaults-are-acceptable)
+  - [Summary](#summary)
+- [CRITICAL: No For Loops - Use Functional Array Methods `[lint]`](#critical-no-for-loops---use-functional-array-methods-lint)
+  - [Why Functional Methods](#why-functional-methods)
+  - [Mandatory Patterns](#mandatory-patterns)
+  - [Complex Transformations](#complex-transformations)
+  - [Summary Rules](#summary-rules)
+- [CRITICAL: No `let` — `const` Only, Switch Over If/Else Chains](#critical-no-let--const-only-switch-over-ifelse-chains)
+  - [Why](#why)
+  - [❌ WRONG — if/else chain mutating a `let`](#-wrong--ifelse-chain-mutating-a-let)
+  - [✅ CORRECT — `switch` encapsulated in a function, called into a `const`](#-correct--switch-encapsulated-in-a-function-called-into-a-const)
+  - [Rules](#rules)
+- [Functional Style: Never Mutate Inputs](#functional-style-never-mutate-inputs)
+- [No Comments Rule](#no-comments-rule)
+  - [Summary Rules](#summary-rules-1)
+
 ## Purpose
 
 Define code formatting rules that ensure accurate code coverage reporting and maintainable code.

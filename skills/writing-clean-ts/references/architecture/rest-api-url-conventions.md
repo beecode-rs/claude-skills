@@ -2,6 +2,32 @@
 
 REST API URL path conventions for creating consistent and predictable endpoints.
 
+## Contents
+
+- [URL Path Naming](#url-path-naming)
+  - [Case Convention](#case-convention)
+  - [Plural vs Singular](#plural-vs-singular)
+  - [Path Structure](#path-structure)
+  - [Unique Identifiers in Path](#unique-identifiers-in-path)
+- [Examples by HTTP Method](#examples-by-http-method)
+  - [GET (Read)](#get-read)
+  - [POST (Create)](#post-create)
+  - [PUT/PATCH (Update)](#putpatch-update)
+  - [DELETE (Remove)](#delete-remove)
+- [Common Patterns](#common-patterns)
+  - [Nested Resources](#nested-resources)
+  - [Actions on Resources](#actions-on-resources)
+  - [Unique Resource Identifiers](#unique-resource-identifiers)
+- [Query Parameters vs Path Parameters](#query-parameters-vs-path-parameters)
+  - [Path Parameters (Resource Identification)](#path-parameters-resource-identification)
+  - [Query Parameters (Filtering, Sorting, Pagination)](#query-parameters-filtering-sorting-pagination)
+- [Complete Examples](#complete-examples)
+  - [E-commerce API](#e-commerce-api)
+  - [Integration API](#integration-api)
+  - [Appointment System](#appointment-system)
+- [Key Rules Summary](#key-rules-summary)
+- [Integration with File Naming](#integration-with-file-naming)
+
 ## URL Path Naming
 
 ### Case Convention

@@ -1,5 +1,34 @@
 # Object Params Pattern
 
+## Contents
+
+- [Overview](#overview)
+- [Quick Decision Tree](#quick-decision-tree)
+- [Rules by Layer](#rules-by-layer)
+  - [✅ ALWAYS Use Object Params (Business Logic Layers)](#-always-use-object-params-business-logic-layers)
+  - [🤔 Optional (Utility and Lib Layers)](#-optional-utility-and-lib-layers)
+  - [❌ Never Use Positional-Only Workarounds](#-never-use-positional-only-workarounds)
+- [Destructure on the First Line](#destructure-on-the-first-line)
+- [Defaults Live in the Signature](#defaults-live-in-the-signature)
+- [Never Mutate the Params](#never-mutate-the-params)
+- [Callbacks](#callbacks)
+- [Examples by Layer](#examples-by-layer)
+- [Pattern](#pattern)
+  - [❌ Multiple Parameters (Avoid)](#-multiple-parameters-avoid)
+  - [✅ Params Object (Preferred)](#-params-object-preferred)
+- [Examples](#examples)
+  - [Service Layer](#service-layer)
+  - [Repository Layer](#repository-layer)
+  - [Utility Layer Examples](#utility-layer-examples)
+- [Parameter Object Types](#parameter-object-types)
+  - [Inline Type (default)](#inline-type-default)
+  - [Named Local Type](#named-local-type)
+  - [Shared Type (Separate File)](#shared-type-separate-file)
+- [React Props Analogy](#react-props-analogy)
+- [Migration Strategy](#migration-strategy)
+- [Summary](#summary)
+  - [Rules](#rules)
+
 ## Overview
 
 Pass parameters as object properties instead of multiple individual parameters. This improves code readability, maintainability, and makes function calls self-documenting.

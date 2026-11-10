@@ -16,6 +16,18 @@ rules it satisfies; the per-file starter shapes also exist in `templates/`.
 Stack: Express 5 + TypeORM (better-sqlite3) + Zod, standalone single package
 (no monorepo shared packages), msh utilities for boot/config/logging.
 
+## Contents
+
+- [Tree](#tree)
+- [Entry and boot](#entry-and-boot)
+- [util and lib](#util-and-lib)
+- [Models](#models)
+- [Repository](#repository)
+- [DAL and entity](#dal-and-entity)
+- [Services](#services)
+- [Controller](#controller)
+- [What a fresh cleanup pass finds here](#what-a-fresh-cleanup-pass-finds-here)
+
 ## Tree
 
 ```

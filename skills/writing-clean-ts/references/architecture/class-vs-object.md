@@ -2,6 +2,31 @@
 
 This guide helps you choose between **classes** and **plain objects** (camelCase object literals, often called "singleton objects" in older docs), and when a class earns the `singletonPattern`.
 
+## Contents
+
+- [Quick Decision Tree](#quick-decision-tree)
+- [Layer-Specific Requirements](#layer-specific-requirements)
+  - [Always Use Classes](#always-use-classes)
+  - [Always Use Plain Objects](#always-use-plain-objects)
+  - [Choose Based on Implementation](#choose-based-on-implementation)
+- [Helper Functions Mean Class](#helper-functions-mean-class)
+- [No Constructor Dependency Injection](#no-constructor-dependency-injection)
+- [Pattern Details](#pattern-details)
+  - [Class Services: Constructor, Singleton, and Factory Patterns](#class-services-constructor-singleton-and-factory-patterns)
+  - [Plain Object Pattern](#plain-object-pattern)
+  - [Class Pattern](#class-pattern)
+- [Special Case: Use Cases](#special-case-use-cases)
+- [Common Mistakes](#common-mistakes)
+  - [❌ Module-Level Helper Functions Next to an Export](#-module-level-helper-functions-next-to-an-export)
+  - [❌ `_` Members on a Plain Object](#-_-members-on-a-plain-object)
+  - [❌ Using a Class for a Simple Module](#-using-a-class-for-a-simple-module)
+  - [❌ Plain Object Whose Methods Need Each Other](#-plain-object-whose-methods-need-each-other)
+  - [❌ Singleton Without Memory](#-singleton-without-memory)
+  - [❌ Class and Singleton in Two Files](#-class-and-singleton-in-two-files)
+  - [❌ Constructor Dependency Injection](#-constructor-dependency-injection)
+  - [❌ Exporting Instantiated Class Objects](#-exporting-instantiated-class-objects)
+- [Summary Table](#summary-table)
+
 ## Quick Decision Tree
 
 ```

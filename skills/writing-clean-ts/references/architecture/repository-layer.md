@@ -2,6 +2,24 @@
 
 Repositories extend `CommonRepo` for entity-model conversion and provide a clean interface for data access. Part of the **Repository Layer (RL)** in the Business Layer.
 
+## Contents
+
+- [Naming Convention](#naming-convention)
+- [Purpose](#purpose)
+- [Structure](#structure)
+- [Key Characteristics](#key-characteristics)
+- [Usage](#usage)
+- [Repository Specialization](#repository-specialization)
+  - [Scoped Repos (subclass + fixedFilter)](#scoped-repos-subclass--fixedfilter)
+- [The Repo Knows Nothing About Storage](#the-repo-knows-nothing-about-storage)
+- [In-Memory Repos with File Persistence](#in-memory-repos-with-file-persistence)
+- [Client-Side REST Repos (frontend)](#client-side-rest-repos-frontend)
+- [GraphQL Repo](#graphql-repo)
+- [Null vs Undefined](#null-vs-undefined)
+- [Architectural Rules](#architectural-rules)
+  - [✅ DO](#-do)
+  - [❌ DON'T](#-dont)
+
 ## Naming Convention
 
 - **File:** `kebab-case` (e.g., `project-repo.ts`)

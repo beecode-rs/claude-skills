@@ -5,6 +5,7 @@ Everything Express-specific: where Express controllers live, how they are named,
 ## Contents
 
 - [Express In This Skill's Layers](#express-in-this-skills-layers)
+- [Standalone Project Variant](#standalone-project-variant)
 - [Express Controller Layer](#express-controller-layer)
   - [Framework](#framework)
   - [Naming Convention](#naming-convention)
@@ -24,7 +25,7 @@ Everything Express-specific: where Express controllers live, how they are named,
   - [Simplified Example (POST with minimal validation)](#simplified-example-post-with-minimal-validation)
   - [Key Characteristics](#key-characteristics-1)
   - [Response Formats](#response-formats-1)
-  - [Query Parameters](#query-parameters-1)
+  - [Query Parameters](#query-parameters)
   - [Controller Layer Responsibilities](#controller-layer-responsibilities)
   - [Architectural Rules](#architectural-rules-1)
 

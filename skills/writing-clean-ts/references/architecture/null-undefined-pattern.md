@@ -1,5 +1,21 @@
 # Null vs Undefined Pattern
 
+## Contents
+
+- [The Rule](#the-rule)
+- [Layer Boundaries](#layer-boundaries)
+- [Why This Matters](#why-this-matters)
+- [Business Logic Layer (✅ undefined)](#business-logic-layer--undefined)
+- [DAL / Entity Layer (null allowed here)](#dal--entity-layer-null-allowed-here)
+- [Type Definitions](#type-definitions)
+  - [Business Models (business/model/ folders)](#business-models-businessmodel-folders)
+  - [Business Layer Types](#business-layer-types)
+  - [DAL / Entity Layer Types](#dal--entity-layer-types)
+- [Summary Table](#summary-table)
+- [Architectural Rules](#architectural-rules)
+  - [✅ DO](#-do)
+  - [❌ DON'T](#-dont)
+
 ## The Rule
 
 **Business Logic Layer uses ONLY `undefined`. `null` lives ONLY in the DAL/Entity layer.**

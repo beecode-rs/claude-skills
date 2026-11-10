@@ -2,6 +2,35 @@
 
 This document explains the distinction between Models and Entities in the TypeScript architecture, when to use each, and how to transform between them.
 
+## Contents
+
+- [Quick Reference](#quick-reference)
+- [Definitions](#definitions)
+  - [Entity](#entity)
+  - [Model](#model)
+- [Why Separate Them?](#why-separate-them)
+  - [1. Decoupling](#1-decoupling)
+  - [2. Flexibility](#2-flexibility)
+  - [3. Security](#3-security)
+  - [4. Testing](#4-testing)
+- [Transformation Pattern](#transformation-pattern)
+  - [DAL Layer: Entity ↔ Model](#dal-layer-entity--model)
+  - [Transformation Rules](#transformation-rules)
+- [Model Types](#model-types)
+  - [The Model Triple (co-located, zod-inferred)](#the-model-triple-co-located-zod-inferred)
+  - [Filter Model](#filter-model)
+  - [Type-Only Model Files](#type-only-model-files)
+  - [Model Classes](#model-classes)
+- [What a Model File May Contain](#what-a-model-file-may-contain)
+- [File Organization](#file-organization)
+- [Common Patterns](#common-patterns)
+  - [Related Models](#related-models)
+  - [Model vs DTO](#model-vs-dto)
+- [Best Practices](#best-practices)
+  - [DO](#do)
+  - [DON'T](#dont)
+- [Summary](#summary)
+
 ## Quick Reference
 
 | Concept | Layer | Purpose | Database Aware |

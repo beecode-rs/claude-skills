@@ -2,6 +2,21 @@
 
 Use cases are the controller-facing named boundary for a business operation. Part of the **Use Case Layer (UCL)** in the Business Layer.
 
+## Contents
+
+- [Naming Convention](#naming-convention)
+- [Purpose](#purpose)
+- [When to Create a Use Case](#when-to-create-a-use-case)
+  - [Two hard rules](#two-hard-rules)
+- [Structure](#structure)
+- [Key Characteristics](#key-characteristics)
+- [Why Use Cases Must Be Plain Objects](#why-use-cases-must-be-plain-objects)
+- [Use Case vs Service](#use-case-vs-service)
+- [Null vs Undefined](#null-vs-undefined)
+- [Architectural Rules](#architectural-rules)
+  - [✅ DO](#-do)
+  - [❌ DON'T](#-dont)
+
 ## Naming Convention
 
 - **File:** `kebab-case` (e.g., `git-use-case.ts`)

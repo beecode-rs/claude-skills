@@ -11,6 +11,18 @@ cleanup pass should find nothing structural to fix.
 
 When a project already has all six pieces below, skip this file.
 
+## Contents
+
+- [The six setup pieces](#the-six-setup-pieces)
+  - [1. package.json](#1-packagejson)
+  - [2. tsconfig.json](#2-tsconfigjson)
+  - [3. eslint.config.js](#3-eslintconfigjs)
+  - [4. .prettierrc and .prettierignore](#4-prettierrc-and-prettierignore)
+  - [5. Dev dependencies, pinned to the supported line](#5-dev-dependencies-pinned-to-the-supported-line)
+  - [6. Verification loop](#6-verification-loop)
+- [Then build in layer order](#then-build-in-layer-order)
+- [Setup checklist](#setup-checklist)
+
 ## The six setup pieces
 
 ### 1. package.json

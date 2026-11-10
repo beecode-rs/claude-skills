@@ -2,6 +2,28 @@
 
 Services implement core business logic using **singleton objects**, **classes**, or **factory functions**. Part of the **Service Layer (SL)** in the Business Layer.
 
+## Contents
+
+- [Naming Convention](#naming-convention)
+- [Purpose](#purpose)
+- [The Three Service Shapes](#the-three-service-shapes)
+- [Structure](#structure)
+  - [Singleton Object Pattern](#singleton-object-pattern)
+  - [Class Pattern](#class-pattern)
+  - [Factory Function Pattern](#factory-function-pattern)
+- [Key Characteristics](#key-characteristics)
+- [Service-to-Service Dependencies](#service-to-service-dependencies)
+- [The Exclusivity Check](#the-exclusivity-check)
+- [Fetch What You Need; Don't Receive It](#fetch-what-you-need-dont-receive-it)
+- [Collaborators Come From Imports](#collaborators-come-from-imports)
+- [No Constants in Service Files](#no-constants-in-service-files)
+- [Direct DAL Access](#direct-dal-access)
+- [Null vs Undefined](#null-vs-undefined)
+- [Service Subfolders](#service-subfolders)
+- [Architectural Rules](#architectural-rules)
+  - [✅ DO](#-do)
+  - [❌ DON'T](#-dont)
+
 ## Naming Convention
 
 - **File:** `kebab-case` (e.g., `secret-service.ts`)

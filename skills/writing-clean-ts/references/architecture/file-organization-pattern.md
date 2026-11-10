@@ -4,6 +4,41 @@ This document defines where files must be placed and how modules should be struc
 
 Before placing the FIRST file of a brand-new project, the scaffold (package.json, tsconfig, lint scripts, `#src` alias) must already exist: see `references/architecture/project-scaffold.md`. For the assembled result of these placement rules across a whole verified project, see `references/architecture/example-app.md` - the tree below is that app's skeleton.
 
+## Contents
+
+- [The Master Criterion: Domain-Awareness](#the-master-criterion-domain-awareness)
+- [Directory Structure](#directory-structure)
+  - [Backend Structure](#backend-structure)
+  - [Where to Place Code](#where-to-place-code)
+- [Placement Decision Tree](#placement-decision-tree)
+- [Subfolder Grouping Within Layers](#subfolder-grouping-within-layers)
+  - [Why subfolders over flat prefixed files](#why-subfolders-over-flat-prefixed-files)
+  - [When to use subfolders vs. flat files](#when-to-use-subfolders-vs-flat-files)
+  - [Strategy Pattern Example (open)](#strategy-pattern-example-open)
+  - [Closed Pattern Implementations → Component Layer](#closed-pattern-implementations--component-layer)
+  - [Preset Pattern Example](#preset-pattern-example)
+  - [Shared React Hooks (`src/business/hook/`)](#shared-react-hooks-srcbusinesshook)
+  - [Mock and Test Placement in Subfolders](#mock-and-test-placement-in-subfolders)
+- [CRITICAL: Forbidden Locations](#critical-forbidden-locations)
+  - [Examples of WRONG Locations:](#examples-of-wrong-locations)
+  - [Examples of CORRECT Locations:](#examples-of-correct-locations)
+  - [Reusable Infrastructure (`src/lib/`)](#reusable-infrastructure-srclib)
+  - [Package-Private Wiring (`src/__internal__/`)](#package-private-wiring-src__internal__)
+- [Module Export Pattern](#module-export-pattern)
+  - [Rule: ONE Export Per File (Service/Component Pattern)](#rule-one-export-per-file-servicecomponent-pattern)
+  - [Wrong: Multiple Standalone Exports](#wrong-multiple-standalone-exports)
+  - [Correct: Singleton Service Object](#correct-singleton-service-object)
+- [Barrel Exports (index.ts)](#barrel-exports-indexts)
+  - [Rule: AVOID Barrel Exports for Business Logic](#rule-avoid-barrel-exports-for-business-logic)
+  - [Wrong: Barrel Export Pattern](#wrong-barrel-export-pattern)
+  - [Correct: Direct Imports from Service Files](#correct-direct-imports-from-service-files)
+  - [When index.ts IS Acceptable](#when-indexts-is-acceptable)
+- [Decision Flowchart](#decision-flowchart)
+- [Parser/Utility Module Pattern](#parserutility-module-pattern)
+  - [Example: Converting Parsers to Services](#example-converting-parsers-to-services)
+  - [Service Template for Parsers](#service-template-for-parsers)
+- [Summary Checklist](#summary-checklist)
+
 ## The Master Criterion: Domain-Awareness
 
 The single clearest dividing line for "where does this logic live":

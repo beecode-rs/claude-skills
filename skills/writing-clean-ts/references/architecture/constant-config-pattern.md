@@ -10,6 +10,14 @@ A value in code is one of three kinds, and each kind has exactly one home. Mixin
 
 The test for constant vs config: *would anyone ever want to change this without a code change?* Yes → config (env-settable). No → constant.
 
+## Contents
+
+- [constant.ts](#constantts)
+- [config.ts](#configts)
+- [Runtime State](#runtime-state)
+- [Platform Detection](#platform-detection)
+- [Checklist](#checklist)
+
 ## constant.ts
 
 ```typescript

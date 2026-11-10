@@ -1,5 +1,16 @@
 # Function Guidelines
 
+## Contents
+
+- [Error Handling (Return Undefined Pattern)](#error-handling-return-undefined-pattern)
+  - [Basic Rule](#basic-rule)
+  - [Swallowing Errors](#swallowing-errors)
+  - [Avoiding Code Duplication](#avoiding-code-duplication)
+- [Function Naming](#function-naming)
+- [Exhaustive Enum Switches](#exhaustive-enum-switches)
+- [Do Not Repeat Near-Identical Functions](#do-not-repeat-near-identical-functions)
+- [Delete Code That No Longer Has a Job](#delete-code-that-no-longer-has-a-job)
+
 ## Error Handling (Return Undefined Pattern)
 
 Every function should be treated as if it can throw an error at any moment.

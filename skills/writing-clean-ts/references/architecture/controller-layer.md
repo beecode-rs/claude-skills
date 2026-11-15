@@ -97,14 +97,14 @@ export const getResourcesAll = {
     const { filter, pagination, sort } = validateInput(request.query)
 
     // 2. Delegate to business layer
-    const { data, pagination: result } = await repository.findMany({
+    const { data, pagination } = await repository.findMany({
       filter,
       pagination,
       sort,
     })
 
     // 3. Return structured response
-    return { data, meta: { pagination: result } }
+    return { data, meta: { pagination } }
   },
   schema: {
     // API documentation schema

@@ -1,78 +1,42 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: ralph <task-file.TASK.md> [max-iterations] [sleep-seconds]
-# Example: ralph ~/tasks/my-feature.TASK.md 50 3
+TASK_FILE=""
+MAX=100
+SLEEP=2
 
-TASK_FILE="${1:-}"
-MAX=${2:-100}
-SLEEP=${3:-2}
-
-# Tunables (override via environment)
-MAX_TURNS="${RALPH_MAX_TURNS:-50}"        # per-iteration cap on agent turns
-STALL_LIMIT="${RALPH_STALL_LIMIT:-5}"     # stop after N iterations with no progress
-PROMPT_FILE="${RALPH_PROMPT_FILE:-./RALPH-PROMPT.md}"
-
+MAX_TURNS="${RALPH_MAX_TURNS:-50}"
+STALL_LIMIT="${RALPH_STALL_LIMIT:-5}"
+PROMPT_FILE="$HOME/Nextcloud/box/ai/collection/script/RALPH-PROMPT.md"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 
-if [[ -z "$TASK_FILE" ]]; then
-    echo "Usage: ralph <task-file.TASK.md> [max-iterations] [sleep-seconds]"
-    echo "Example: ralph ~/tasks/my-feature.TASK.md 50 3"
-    exit 1
-fi
-
-TASK_FILE="$(realpath "$TASK_FILE")"
-
-if [[ ! -f "$TASK_FILE" ]]; then
-    echo "Error: Task file not found: $TASK_FILE"
-    exit 1
-fi
-
-if [[ "$TASK_FILE" != *.TASK.md ]]; then
-    echo "Error: Task file must end with .TASK.md"
-    exit 1
-fi
-
-if [[ -z "${RALPH_PROMPT_FILE:-}" && ! -f "$PROMPT_FILE" ]]; then
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    if [[ -f "${SCRIPT_DIR}/RALPH-PROMPT.md" ]]; then
-        PROMPT_FILE="${SCRIPT_DIR}/RALPH-PROMPT.md"
-    fi
-fi
-if [[ ! -f "$PROMPT_FILE" ]]; then
-    echo "Error: Prompt file not found: $PROMPT_FILE"
-    echo "Provide RALPH-PROMPT.md in the working directory, install a copy next to the"
-    echo "ralph script, or point RALPH_PROMPT_FILE at it."
-    exit 1
-fi
-
-if ! command -v jq >/dev/null 2>&1; then
-    echo "Error: jq is required for streaming output"
-    exit 1
-fi
-
-# Fail fast: CLAUDE_BIN must be a real executable on PATH. Shell aliases
-# (like a claude alias in .zshrc) do NOT exist inside scripts — wrap the
-# alias in an executable script (e.g. ~/.local/bin/claude) instead.
-if ! command -v "$CLAUDE_BIN" >/dev/null 2>&1; then
-    echo "Error: claude executable not found: '$CLAUDE_BIN'"
-    echo "If '$CLAUDE_BIN' is a shell alias, create an executable wrapper for it,"
-    echo "or point CLAUDE_BIN at the real binary (try: command -v claude)."
-    exit 1
-fi
-
-TASK_DIR="$(dirname "$TASK_FILE")"
-TASK_BASENAME="$(basename "$TASK_FILE" .TASK.md)"
-PROGRESS_FILE="${TASK_DIR}/${TASK_BASENAME}.progress.txt"
-LOG_DIR="${TASK_DIR}/${TASK_BASENAME}.logs"
-
+TASK_DIR=""
+TASK_BASENAME=""
+PROGRESS_FILE=""
+REPORT_FILE=""
+LOG_DIR=""
 WORK_DIR="$(pwd)"
 
-# Colors
+RUN_STARTED_AT=""
+RUN_STARTED_TS=0
+RUN_OUTCOME=""
+ITERATIONS_RUN=0
+AGENT_ERRORS=0
+STREAM_ERRORS=0
+PENDING_AT_START=0
+TOTAL_TURNS=0
+TOTAL_COST=0
+TOTAL_TOOL_CALLS=0
+MODEL_USED=""
+
 LIGHT_BLUE="\033[94m"
 ORANGE="\033[38;5;208m"
 DIM="\033[2m"
 RESET="\033[0m"
+
+print_error() {
+    echo "Error: $1"
+}
 
 display_main_header() {
     local message="$1"
@@ -88,10 +52,101 @@ display_iteration_header() {
     echo -e "${ORANGE}-------------------------------------------${RESET}"
 }
 
+print_usage() {
+    echo "Drive a Ralph automation loop on a task file with claude."
+    echo
+    echo "Usage: ralph.sh <task-file.TASK.md> [max-iterations] [sleep-seconds]"
+    echo
+    echo "Arguments:"
+    echo "  <task-file.TASK.md>   task file to run (must end with .TASK.md)"
+    echo "  [max-iterations]      loop cap (default: 100)"
+    echo "  [sleep-seconds]       pause between iterations (default: 2)"
+    echo
+    echo "Environment:"
+    echo "  RALPH_MAX_TURNS=N     per-iteration cap on agent turns (default: 50)"
+    echo "  RALPH_STALL_LIMIT=N   stop after N iterations with no progress (default: 5)"
+    echo "  CLAUDE_BIN=path       claude executable to call (default: claude)"
+    echo
+    echo "Example:"
+    echo "  ralph.sh ~/tasks/my-feature.TASK.md 50 3"
+}
+
+parse_arguments() {
+    case "${1:-}" in
+        -h|--help) print_usage; exit 0 ;;
+    esac
+    if (( $# > 3 )); then
+        print_error "Too many arguments"
+        print_usage
+        exit 1
+    fi
+    TASK_FILE="${1:-}"
+    MAX="${2:-100}"
+    SLEEP="${3:-2}"
+}
+
+check_task_file_given() {
+    if [[ -z "$TASK_FILE" ]]; then
+        print_usage
+        exit 1
+    fi
+}
+
+resolve_task_file_path() {
+    TASK_FILE="$(realpath "$TASK_FILE")"
+}
+
+check_task_file_exists() {
+    if [[ ! -f "$TASK_FILE" ]]; then
+        print_error "Task file not found: $TASK_FILE"
+        exit 1
+    fi
+}
+
+check_task_file_extension() {
+    if [[ "$TASK_FILE" != *.TASK.md ]]; then
+        print_error "Task file must end with .TASK.md"
+        exit 1
+    fi
+}
+
+check_prompt_file_exists() {
+    if [[ ! -f "$PROMPT_FILE" ]]; then
+        print_error "Prompt file not found: $PROMPT_FILE"
+        exit 1
+    fi
+}
+
+check_jq_installed() {
+    if ! command -v jq >/dev/null 2>&1; then
+        print_error "jq is required for streaming output"
+        exit 1
+    fi
+}
+
+check_claude_installed() {
+    if ! command -v "$CLAUDE_BIN" >/dev/null 2>&1; then
+        print_error "claude executable not found: '$CLAUDE_BIN'"
+        echo "If '$CLAUDE_BIN' is a shell alias, create an executable wrapper for it,"
+        echo "or point CLAUDE_BIN at the real binary (try: command -v claude)."
+        exit 1
+    fi
+}
+
+resolve_run_paths() {
+    TASK_DIR="$(dirname "$TASK_FILE")"
+    TASK_BASENAME="$(basename "$TASK_FILE" .TASK.md)"
+    PROGRESS_FILE="${TASK_DIR}/${TASK_BASENAME}.progress.txt"
+    REPORT_FILE="${TASK_DIR}/${TASK_BASENAME}.report.md"
+    LOG_DIR="${TASK_DIR}/${TASK_BASENAME}.logs"
+    WORK_DIR="$(pwd)"
+}
+
 check_git_repository() {
+    local confirm
     if ! git -C "$WORK_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         read -r -p "This is not a git repository. Do you want to continue? (y/N) " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Operation cancelled."; exit 1; }
+        [[ "$confirm" =~ ^[Yy]$ ]] || { RUN_OUTCOME="cancelled at startup: not a git repository"; echo "Operation cancelled."; exit 1; }
         return
     fi
 
@@ -100,7 +155,7 @@ check_git_repository() {
 
     if [[ "$current_branch" == "main" || "$current_branch" == "master" ]]; then
         read -r -p "Warning: You are currently on the $current_branch branch. Do you want to continue? (y/N) " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Operation cancelled."; exit 1; }
+        [[ "$confirm" =~ ^[Yy]$ ]] || { RUN_OUTCOME="cancelled at startup: on $current_branch branch"; echo "Operation cancelled."; exit 1; }
     fi
 }
 
@@ -112,7 +167,6 @@ initialize_progress_file() {
     mkdir -p "$LOG_DIR"
 }
 
-# Replace {{PLACEHOLDER}} tokens with pure bash — no sed escaping issues
 build_prompt() {
     local iteration="$1"
     local prompt
@@ -127,8 +181,6 @@ count_pending_tasks() {
     grep -cE '^[[:space:]]*[-*] \[ \]' "$TASK_FILE" || true
 }
 
-# Stream agent activity to the terminal while logging raw events as jsonl.
-# Shows assistant text plus a dim one-liner per tool call.
 run_claude_streaming() {
     local prompt="$1"
     local log_file="$2"
@@ -177,6 +229,106 @@ report_blocked_tasks() {
     fi
 }
 
+format_duration() {
+    local total="$1"
+    local hours=$(( total / 3600 ))
+    local minutes=$(( (total % 3600) / 60 ))
+    local seconds=$(( total % 60 ))
+    if (( hours > 0 )); then
+        printf '%dh %dm %ds' "$hours" "$minutes" "$seconds"
+    elif (( minutes > 0 )); then
+        printf '%dm %ds' "$minutes" "$seconds"
+    else
+        printf '%ds' "$seconds"
+    fi
+}
+
+init_run_tracking() {
+    RUN_STARTED_AT="$(date '+%Y-%m-%d %H:%M:%S')"
+    RUN_STARTED_TS="$(date +%s)"
+    PENDING_AT_START="$(count_pending_tasks)"
+}
+
+add_cost() {
+    TOTAL_COST="$(awk -v running="$TOTAL_COST" -v added="$1" 'BEGIN { printf "%.4f", running + added }')"
+}
+
+detect_model_from_log() {
+    local log_file="$1"
+    local model
+    model="$(jq -sr '[.[] | select(.type == "system" and .subtype == "init")] | first | .model // empty' "$log_file" 2>/dev/null || true)"
+    if [[ -n "$model" && -z "$MODEL_USED" ]]; then
+        MODEL_USED="$model"
+    fi
+}
+
+accumulate_iteration_stats() {
+    local log_file="$1"
+    local turns cost tool_calls error_results
+
+    turns="$(jq -sr 'map(select(.type == "result")) | last | .num_turns // 0' "$log_file" 2>/dev/null || true)"
+    cost="$(jq -sr 'map(select(.type == "result")) | last | .total_cost_usd // 0' "$log_file" 2>/dev/null || true)"
+    tool_calls="$(jq -sr '[.[] | .message.content[]? | select(.type == "tool_use")] | length' "$log_file" 2>/dev/null || true)"
+    error_results="$(jq -sr 'map(select(.type == "result" and .is_error == true)) | length' "$log_file" 2>/dev/null || true)"
+
+    TOTAL_TURNS=$(( TOTAL_TURNS + ${turns:-0} ))
+    TOTAL_TOOL_CALLS=$(( TOTAL_TOOL_CALLS + ${tool_calls:-0} ))
+    STREAM_ERRORS=$(( STREAM_ERRORS + ${error_results:-0} ))
+    add_cost "${cost:-0}"
+    detect_model_from_log "$log_file"
+}
+
+write_run_report() {
+    local exit_code="$1"
+    local ended_at duration pending_now outcome
+
+    ended_at="$(date '+%Y-%m-%d %H:%M:%S')"
+    duration=$(( $(date +%s) - RUN_STARTED_TS ))
+    pending_now="$(count_pending_tasks)"
+
+    if [[ -n "$RUN_OUTCOME" ]]; then
+        outcome="$RUN_OUTCOME"
+    elif (( exit_code == 0 )); then
+        outcome="finished"
+    else
+        outcome="unexpected failure"
+    fi
+
+    {
+        if [[ -s "$REPORT_FILE" ]]; then
+            printf '\n___\n\n'
+        fi
+        printf '%s\n' "# Run Report - $RUN_STARTED_AT"
+        printf '\n'
+        printf '%s\n' "- **Status:** $outcome (exit $exit_code)"
+        printf '%s\n' "- **Agent:** claude ($CLAUDE_BIN)"
+        printf '%s\n' "- **Model:** ${MODEL_USED:-not recorded in logs}"
+        printf '%s\n' "- **Task file:** $TASK_FILE"
+        printf '%s\n' "- **Started:** $RUN_STARTED_AT"
+        printf '%s\n' "- **Ended:** $ended_at"
+        printf '%s\n' "- **Duration:** $(format_duration "$duration") (${duration}s)"
+        printf '%s\n' "- **Iterations:** $ITERATIONS_RUN of max $MAX"
+        printf '%s\n' "- **Steps:** $TOTAL_TURNS agent turns, $TOTAL_TOOL_CALLS tool calls"
+        printf '%s\n' "- **Errors:** $AGENT_ERRORS agent failures, $STREAM_ERRORS error results"
+        printf '%s\n' "- **Cost:** \$$TOTAL_COST"
+        printf '%s\n' "- **Tasks pending:** $PENDING_AT_START at start, $pending_now at end"
+        printf '%s\n' "- **Working directory:** $WORK_DIR"
+        printf '%s\n' "- **Logs:** $LOG_DIR"
+    } >> "$REPORT_FILE"
+}
+
+handle_interrupt() {
+    RUN_OUTCOME="interrupted by user"
+    echo ""
+    display_main_header "Interrupted at iteration ${i:-0}"
+    exit 130
+}
+
+handle_terminate() {
+    RUN_OUTCOME="terminated by SIGTERM"
+    exit 143
+}
+
 run_automation_loop() {
     local stall=0
     local fails=0
@@ -185,6 +337,7 @@ run_automation_loop() {
 
     for ((i = 1; i <= MAX; i++)); do
         display_iteration_header "Iteration $i of $MAX"
+        ITERATIONS_RUN=$i
 
         local log_file="${LOG_DIR}/iteration-${i}.jsonl"
         local prompt
@@ -192,29 +345,34 @@ run_automation_loop() {
 
         if ! run_claude_streaming "$prompt" "$log_file"; then
             (( ++fails ))
+            (( ++AGENT_ERRORS ))
+            detect_model_from_log "$log_file"
             if (( fails >= 3 )); then
+                RUN_OUTCOME="aborted: claude failed $fails times in a row"
                 display_main_header "Aborting: claude failed $fails times in a row"
                 echo "Last log: $log_file"
                 exit 1
             fi
-            echo -e "${DIM}Warning: claude exited with an error on iteration $i (log: $log_file) — retrying${RESET}" >&2
+            echo -e "${DIM}Warning: claude exited with an error on iteration $i (log: $log_file), retrying${RESET}" >&2
             sleep "$SLEEP"
             continue
         fi
         fails=0
 
+        accumulate_iteration_stats "$log_file"
         print_iteration_summary "$log_file"
 
         result=$(extract_result_text "$log_file")
         if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
+            RUN_OUTCOME="completed: agent promised all tasks done"
             display_main_header "All tasks complete after $i iterations!"
             report_blocked_tasks
             exit 0
         fi
 
-        # Belt and suspenders: don't rely on the agent remembering the sentinel
         pending=$(count_pending_tasks)
         if (( pending == 0 )); then
+            RUN_OUTCOME="completed: no unchecked tasks left"
             display_main_header "No unchecked tasks left after $i iterations!"
             report_blocked_tasks
             exit 0
@@ -223,6 +381,7 @@ run_automation_loop() {
         if (( pending == prev_pending )); then
             (( ++stall ))
             if (( stall >= STALL_LIMIT )); then
+                RUN_OUTCOME="stalled: no progress for $STALL_LIMIT consecutive iterations"
                 display_main_header "Stalled: no progress for $STALL_LIMIT consecutive iterations"
                 echo "Check $PROGRESS_FILE for what keeps failing."
                 exit 1
@@ -238,19 +397,49 @@ run_automation_loop() {
     done
 }
 
-trap 'echo ""; display_main_header "Interrupted at iteration ${i:-0}"; exit 130' INT
+set_signal_traps() {
+    trap handle_interrupt INT
+    trap handle_terminate TERM
+    trap 'write_run_report $?' EXIT
+}
 
-check_git_repository
-initialize_progress_file
+display_run_header() {
+    display_main_header "Starting Ralph - Max $MAX iterations"
+    echo "Working directory: $WORK_DIR"
+    echo "Task file: $TASK_FILE"
+    echo "Progress file: $PROGRESS_FILE"
+    echo "Report file: $REPORT_FILE"
+    echo "Logs: $LOG_DIR"
+    echo ""
+}
 
-display_main_header "Starting Ralph - Max $MAX iterations"
-echo "Working directory: $WORK_DIR"
-echo "Task file: $TASK_FILE"
-echo "Progress file: $PROGRESS_FILE"
-echo "Logs: $LOG_DIR"
-echo ""
+finish_at_max_iterations() {
+    RUN_OUTCOME="stopped: reached max iterations ($MAX)"
+    display_main_header "Reached max iterations ($MAX)"
+    exit 1
+}
 
-run_automation_loop
+run_startup_checks() {
+    check_task_file_given
+    resolve_task_file_path
+    check_task_file_exists
+    check_task_file_extension
+    check_prompt_file_exists
+    check_jq_installed
+    check_claude_installed
+    resolve_run_paths
+}
 
-display_main_header "Reached max iterations ($MAX)"
-exit 1
+run_ralph() {
+    init_run_tracking
+    set_signal_traps
+    check_git_repository
+    initialize_progress_file
+    display_run_header
+    run_automation_loop
+    finish_at_max_iterations
+}
+
+parse_arguments "$@"
+run_startup_checks
+run_ralph

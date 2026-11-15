@@ -233,14 +233,14 @@ export class ProjectDal extends TypeormCommonDal<...> implements IProjectDal {
 
   // Custom query: Aggregate data
   async countByStatus(): Promise<{ status: ProjectStatus; count: number }[]> {
-    const result = await this._repo
+    const statusCounts = await this._repo
       .createQueryBuilder('project')
       .select('project.status', 'status')
       .addSelect('COUNT(*)', 'count')
       .groupBy('project.status')
       .getRawMany()
 
-    return result
+    return statusCounts
   }
 
   // Entity-to-Model conversion methods
@@ -388,7 +388,7 @@ const count = await this._repo
   .where('project.ownerId = :ownerId', { ownerId })
   .getCount()
 
-const result = await this._repo
+const projectTotals = await this._repo
   .createQueryBuilder('project')
   .select('COUNT(*)', 'total')
   .addSelect('AVG(project.score)', 'avgScore')
@@ -399,7 +399,7 @@ const result = await this._repo
 #### Raw SQL Query
 
 ```typescript
-const result = await this._repo.query(
+const projectRows = await this._repo.query(
   'SELECT * FROM project WHERE owner_id = $1 AND status = $2',
   [ownerId, status]
 )

@@ -100,8 +100,8 @@ Rule source: `references/style/code-style.md` ("Multi-Line Code Requirement", "N
 
 ```typescript
 // ❌ WRONG - ternary operators are prohibited
-const result = condition ? trueValue : falseValue
-const result = condition
+const discountRate = condition ? trueValue : falseValue
+const discountRate = condition
   ? trueValue
   : falseValue
 
@@ -113,7 +113,7 @@ if (condition) {
 return falseValue
 
 // ✅ CORRECT - extract to a local function for const assignment
-const getResult = () => {
+const calculateDiscountRate = () => {
   if (condition) {
     return trueValue
   }
@@ -121,7 +121,7 @@ const getResult = () => {
   return falseValue
 }
 
-const result = getResult()
+const discountRate = calculateDiscountRate()
 ```
 
 #### If Statements

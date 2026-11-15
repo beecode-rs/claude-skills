@@ -586,14 +586,14 @@ export const postFeatureAction = {
       const body = validationUtil.parse(req.body, reqBodySchema)
 
       // Call business layer
-      const result = await featureService.doSomething({ id: featureId, ...body })
+      const feature = await featureService.doSomething({ id: featureId, ...body })
 
       // Return response - single result
-      return { data: [result] }
+      return { data: [feature] }
 
       // OR for multiple results:
-      // const results = await featureService.doSomethingMany(...)
-      // return { data: results }
+      // const features = await featureService.doSomethingMany(...)
+      // return { data: features }
     },
     { dataSchema: resDataSchema }
   ) as (req: Request, res: Response, next: NextFunction) => Promise<void>,
@@ -660,9 +660,9 @@ export const postFeatureAction = {
       const { featureId } = validationUtil.parse(req.params, reqPathParamsSchema)
       const body = validationUtil.parse(req.body, reqBodySchema)
 
-      const result = await featureService.doSomething({ id: featureId, ...body })
+      const feature = await featureService.doSomething({ id: featureId, ...body })
 
-      return { data: [result] }
+      return { data: [feature] }
     },
     { dataSchema: resDataSchema }
   ) as (req: Request, res: Response, next: NextFunction) => Promise<void>,

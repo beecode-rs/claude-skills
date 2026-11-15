@@ -16,6 +16,7 @@ This document defines naming standards for all layers in the TypeScript codebase
 - [Naming Convention Summary Table](#naming-convention-summary-table)
 - [Naming Principles](#naming-principles)
   - [Name What It Is, Not Where It Is Used](#name-what-it-is-not-where-it-is-used)
+  - [Descriptive Variable and Function Names](#descriptive-variable-and-function-names)
   - [One Meaning Per Word](#one-meaning-per-word)
   - [Renames Propagate Everywhere](#renames-propagate-everywhere)
 - [Method Naming](#method-naming)
@@ -339,6 +340,52 @@ Two corollaries:
 
 - **Never prefix with the project or product name.** Everything in the repo belongs to the project; the prefix carries no information.
 - **Specific enough to be unambiguous.** When the domain has several kinds of a thing, the generic word is too vague. An app with schedule triggers, usage-reload triggers, and session-reload triggers has no `TriggerModel`: it has `ScheduleTriggerModel`, and the others get their own qualified names.
+
+### Descriptive Variable and Function Names
+
+A local variable or function name says what the value holds, or what the function does, in full English words. The name is the first thing a reader sees; an abbreviated or vague name sends them to the body to learn what the code already knew.
+
+**Full words, no abbreviations.** Never drop syllables to save typing:
+
+| ✗ Abbreviated | ✓ Written out |
+| ------------- | ------------- |
+| `db` | `database` |
+| `cfg` | `config` |
+| `usr` | `user` |
+| `cnt` | `count` |
+| `msg` | `message` |
+| `val` | `value` |
+| `ctx` | `context` |
+| `pwd` | `password` |
+| `len` | `length` |
+| `idx` | `index` |
+
+The same applies to function names: `calcTotal()` becomes `calculateTotal()`, `genToken()` becomes `generateToken()`, `delUser()` becomes `removeUser()` (the written-out verb also follows the layer's vocabulary, see Method Naming below).
+
+**No single-letter names, no vague catch-alls.** `x`, `a`, `e` name nothing. Neither do `result`, `data`, `res`, `temp`, `info`: they name the role the value played in the function instead of the value itself. Name the thing:
+
+```typescript
+// ✗ Vague: the reader must trace every use to learn what these hold
+const result = await orderRepo.findOneById({ id })
+const res = await invoiceRepo.findMany({ filter })
+const x = totalPrice - totalPaid
+
+// ✓ Descriptive: the name carries the meaning
+const order = await orderRepo.findOneById({ id })
+const invoices = await invoiceRepo.findMany({ filter })
+const outstandingBalance = totalPrice - totalPaid
+```
+
+Sanctioned exceptions, which keep their short names:
+
+- catch parameters: `catch (err: unknown)` and `catch (_: unknown)` are the fixed forms
+- generic type parameters (`T` in `CommonMemoryDal<T>`) keep their conventional letters
+- Express handler parameters `req`, `res`, `next` mirror the framework's own types (`Request`, `Response`, `NextFunction`)
+- the response envelope keys `data` and `meta` are API shape, not variable names: `return { data: projects }`, and a destructure feeding the response (`const { data, pagination } = ...`) keeps the envelope's names
+
+**Arrays are plural.** A variable holding an array is the plain plural of the element name: `orders`, `matchedInvoices`, `expiredSubscriptions`. The plural itself is information: `order` is one order, `orders` is the collection. Never the singular for an array, and never a suffix standing in for the plural (`orderList` and `ordersArray` become `orders`).
+
+**Booleans carry their prefix.** A boolean opens with `is` or `has` (`isActive`, `hasPermission`) per Boolean Naming Conventions below; a bare noun like `active` or `permission` never reveals it is a boolean.
 
 ### One Meaning Per Word
 

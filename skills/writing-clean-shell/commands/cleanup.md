@@ -42,7 +42,7 @@ When the script is not bash, use the target shell's own syntax checker instead o
 | `parse_arguments "$@"` followed by `run_cleanup` | PASS |
 | Any other statement at column 0 executing at script start | FAIL |
 
-**Fix**: Wrap the statement in a verb-named function and add it to a steps array.
+**Fix**: Wrap the statement in a verb-named function and call it from an orchestrator.
 
 ### 3. Function Naming Check
 
@@ -68,7 +68,7 @@ When the script is not bash, use the target shell's own syntax checker instead o
 | Body spans many unrelated operations | FAIL |
 | One verb, one outcome, simple guards | PASS |
 
-**Fix**: Split into one function per job; the steps array expresses the sequence.
+**Fix**: Split into one function per job; the orchestrator calling them in order expresses the sequence.
 
 ### 5. Guard Clause Check
 
@@ -94,33 +94,27 @@ update_ollama() {
 
 ### 6. Orchestrator Check
 
-**Rule**: A run_* (or main) function holds a local steps array of function names and loops over it; functions first, orchestrator last.
+**Rule**: A run_* (or main) function calls each step function by name, one under another, with no loop or indirection between the names and the calls; functions first, orchestrator last.
 
 ```bash
 run_user_updates() {
-    local steps=(
-        update_homebrew_packages
-        update_docker_containers
-        update_claude
-    )
-
     print_header "User-level updates"
 
-    for step in "${steps[@]}"; do
-        $step
-    done
+    update_homebrew_packages
+    update_docker_containers
+    update_claude
 }
 ```
 
 | Pattern | Status |
 |---------|--------|
-| Logic listed in a steps array | PASS |
+| Sequential calls to named step functions, one under another | PASS |
 | Multiple phases, one run_* orchestrator each, run in sequence in the main flow | PASS |
-| Logic run inline instead of listed in steps | FAIL |
-| Steps array missing | FAIL |
+| Logic run inline in the orchestrator instead of delegated to named functions | FAIL |
+| Steps routed through a steps array plus a `$step` loop | FAIL |
 | Orchestrator defined before the functions it calls | FAIL |
 
-**Fix**: Move inline logic into functions, list them in the steps array, define the orchestrator after its callees.
+**Fix**: Move inline logic into named functions and call them one under another; define the orchestrator after its callees.
 
 ### 7. Help Check
 
@@ -209,9 +203,9 @@ run_user_updates() {
 COMMENTS     → Zero; only # TODO: Remove when [condition]
 TOP LEVEL    → Shebang, setup, parsing, orchestrator call; nothing else at column 0
 NAMES        → Verb-first snake_case (update_homebrew_packages, check_ollama_installed)
-ONE JOB      → Description needs "and" means split; steps array sequences the jobs
+ONE JOB      → Description needs "and" means split; the orchestrator sequences the jobs
 GUARDS       → Each function checks its own preconditions; print_warning, then return
-ORCHESTRATOR → run_* with a local steps array; functions first, orchestrator last
+ORCHESTRATOR → run_* calling each step by name, one under another; functions first, orchestrator last
 HELP         → print_usage when flags exist; -h exits 0; unknown args exit non-zero
 OUTPUT       → One print vocabulary (print_info, print_success, print_warning, print_header)
 SCOPE        → local inside functions; UPPER_CASE flags declared before functions

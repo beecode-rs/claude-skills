@@ -345,7 +345,7 @@ export class SecretService {
 }
 
 // Usage
-const result = new SecretService().decryptModelSecret({ model })
+const decryptedModel = new SecretService().decryptModelSecret({ model })
 ```
 
 ## Special Case: Use Cases
@@ -469,7 +469,7 @@ const service = new SecretService()
 export { service as secretService }
 
 // ✅ CORRECT - export the class, instantiate at the call site
-const result = new SecretService().decryptSecret({ secret })
+const decryptedSecret = new SecretService().decryptSecret({ secret })
 
 // ✅ CORRECT - one instance holding memory: _Class + singletonPattern
 export const secretServiceSingleton = singletonPattern(() => {

@@ -451,7 +451,7 @@ export class YamlParserContract { ... }
 export class SecretService { ... }
 
 // Usage at call site:
-const result = new YamlParserContract().parse(content)
+const parsedContent = new YamlParserContract().parse(content)
 const decrypted = new SecretService().decryptSecret(secret)
 ```
 

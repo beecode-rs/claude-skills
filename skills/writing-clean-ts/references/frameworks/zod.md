@@ -159,9 +159,9 @@ export const getProjectsAll = {
       reqQueryParamsSchema
     )
 
-    const result = await new ProjectRepo().findMany({ filter, pagination })
+    const projects = await new ProjectRepo().findMany({ filter, pagination })
 
-    return result
+    return projects
   }),
   schema: {
     querystring: reqQueryParamsSchema,
